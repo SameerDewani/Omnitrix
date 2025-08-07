@@ -1,1567 +1,1777 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Financial Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --accent-green: #00ff88;
-      --accent-blue: #0088ff;
-      --accent-orange: #FC4C02;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Financial Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --accent-green: #00ff88;
+        --accent-blue: #0088ff;
+        --accent-orange: #FC4C02;
 
-      --ben-dark: #0a0f0a;
-      --ben-light: #e6ffe6;
-      --text-dark: #222;
-      --text-light: #e0ffe0;
-    }
-
-    body[data-theme-accent="green"] {
-      --accent-color: var(--accent-green);
-    }
-    body[data-theme-accent="blue"] {
-      --accent-color: var(--accent-blue);
-    }
-    body[data-theme-accent="orange"] {
-      --accent-color: var(--accent-orange);
-    }
-
-    body {
-      font-family: 'Oxanium', sans-serif;
-      margin: 0;
-      background: var(--ben-light);
-      color: var(--text-dark);
-      transition: all 0.3s ease-in-out;
-      --accent-color: var(--accent-green);
-    }
-
-    body.dark {
-      background: var(--ben-dark);
-      color: var(--text-light);
-    }
-
-    .accent {
-      color: var(--accent-color);
-    }
-    .bg-accent {
-      background-color: var(--accent-color);
-    }
-    body.dark .bg-accent {
-      background-color: #003300;
-    }
-
-    .hamburger {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 1001;
-      cursor: pointer;
-      width: 36px;
-      height: 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .hamburger span {
-      display: block;
-      height: 4px;
-      background: #004411; /* visible dark green on light mode */
-      border-radius: 2px;
-      transition: background-color 0.3s;
-    }
-
-    body.dark .hamburger span {
-      background: var(--accent-color);
-    }
-
-    .sidebar {
-      height: 100%;
-      width: 270px;
-      position: fixed;
-      z-index: 1000;
-      top: 0;
-      left: -280px;
-      background-color: #111;
-      overflow-x: hidden;
-      transition: 0.4s;
-      padding-top: 60px;
-      font-weight: 600;
-      font-size: 1.1em;
-    }
-
-    .sidebar.open {
-      left: 0;
-    }
-
-    .sidebar a {
-      padding: 15px 30px;
-      text-decoration: none;
-      color: var(--accent-color);
-      display: block;
-      transition: 0.2s;
-      user-select: none;
-    }
-
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #222;
-      color: white;
-    }
-
-    #overlay {
-      display: none;
-      position: fixed;
-      z-index: 500;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 100vw;
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    #overlay.show {
-      display: block;
-    }
-
-    .content {
-      margin: 0;
-      padding: 60px 20px 20px 20px;
-      transition: margin-left 0.3s ease;
-      max-width: 960px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .top-bar {
-      position: fixed;
-      top: 12px;
-      left: 70px;
-      right: 20px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      font-family: 'Oxanium', sans-serif;
-      font-weight: 700;
-      font-size: 1.5em;
-      color: var(--accent-color);
-      user-select: none;
-      white-space: nowrap;
-      transition: color 0.3s;
-    }
-
-    body.dark .top-bar {
-      color: var(--text-light);
-    }
-
-    #price-tiles-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .price-tile {
-      background: var(--accent-color);
-      color: #000;
-      padding: 20px 10px;
-      margin: 0;
-      border-radius: 12px;
-      min-width: 140px;
-      font-size: 1.2em;
-      user-select: text;
-      transition: background-color 0.3s, color 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      cursor: default;
-    }
-
-    body.dark .price-tile {
-      background: #003300;
-      color: #ccffcc;
-    }
-
-    .price-tile button.remove-price {
-      background: transparent;
-      border: none;
-      color: inherit;
-      font-size: 1.2em;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 0 5px;
-      line-height: 1;
-      user-select: none;
-    }
-    .price-tile button.remove-price:hover {
-      color: #ff4444;
-    }
-
-    #add-price-form {
-      margin-top: 10px;
-      user-select: none;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    #add-price-form input[type="text"] {
-      padding: 6px 8px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      text-transform: uppercase;
-      width: 120px;
-      user-select: text;
-      color: black;
-      background-color: white;
-      transition: all 0.3s;
-    }
-    body.dark #add-price-form input[type="text"] {
-      color: white;
-      background-color: #222;
-      border: 1px solid var(--accent-color);
-    }
-    #add-price-form button {
-      padding: 6px 16px;
-      background: var(--accent-color);
-      border: none;
-      border-radius: 6px;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      user-select: none;
-    }
-    #add-price-form button:hover {
-      background: #00cc6a;
-    }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 52px;
-      height: 26px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 30px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 3px;
-      bottom: 3px;
-      background-color: black;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--accent-color);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    iframe.sheet-frame {
-      width: 1300px;
-      height: 600px;
-      border: none;
-      border-radius: 8px;
-      margin-top: 20px;
-      user-select: none;
-    }
-
-    .iframe-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    a.button-link {
-      display: inline-block;
-      margin: 20px 0;
-      padding: 12px 24px;
-      background: var(--accent-color);
-      color: #000;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 8px;
-      user-select: none;
-      transition: background-color 0.3s;
-    }
-
-    a.button-link:hover {
-      background: #00dd55;
-    }
-
-    #notification-bar {
-      position: fixed;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: var(--accent-color);
-      color: black;
-      font-weight: bold;
-      padding: 12px 24px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      display: none;
-      z-index: 1500;
-      max-width: 90%;
-      user-select: none;
-    }
-
-    @media (max-width: 600px) {
-      .price-tile {
-        min-width: 100%;
-        margin: 10px 0;
+        --ben-dark: #0a0f0a;
+        --ben-light: #e6ffe6;
+        --text-dark: #222;
+        --text-light: #e0ffe0;
       }
+
+      body[data-theme-accent="green"] {
+        --accent-color: var(--accent-green);
+      }
+      body[data-theme-accent="blue"] {
+        --accent-color: var(--accent-blue);
+      }
+      body[data-theme-accent="orange"] {
+        --accent-color: var(--accent-orange);
+      }
+
+      body {
+        font-family: 'Oxanium', sans-serif;
+        margin: 0;
+        background: var(--ben-light);
+        color: var(--text-dark);
+        transition: all 0.3s ease-in-out;
+        --accent-color: var(--accent-green);
+        padding-top: 50px;
+      }
+
+      body.dark {
+        background: var(--ben-dark);
+        color: var(--text-light);
+      }
+
+      .accent {
+        color: var(--accent-color);
+      }
+      .bg-accent {
+        background-color: var(--accent-color);
+      }
+      body.dark .bg-accent {
+        background-color: #003300;
+      }
+
+      .hamburger {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 1001;
+        cursor: pointer;
+        width: 36px;
+        height: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .hamburger span {
+        display: block;
+        height: 4px;
+        background: #004411; /* visible dark green on light mode */
+        border-radius: 2px;
+        transition: background-color 0.3s;
+      }
+
+      body.dark .hamburger span {
+        background: var(--accent-color);
+      }
+
+      .sidebar {
+        height: 100%;
+        width: 270px;
+        position: fixed;
+        z-index: 1000;
+        top: 0;
+        left: -280px;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: 0.4s;
+        padding-top: 60px;
+        font-weight: 600;
+        font-size: 1.1em;
+      }
+
+      .sidebar.open {
+        left: 0;
+      }
+
+      .sidebar a {
+        padding: 15px 30px;
+        text-decoration: none;
+        color: var(--accent-color);
+        display: block;
+        transition: 0.2s;
+        user-select: none;
+      }
+
+      .sidebar a:hover,
+      .sidebar a.active {
+        background-color: #222;
+        color: white;
+      }
+
+      #overlay {
+        display: none;
+        position: fixed;
+        z-index: 500;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      #overlay.show {
+        display: block;
+      }
+
       .content {
-        padding: 70px 10px 20px 10px;
+        margin: 0;
+        padding: 60px 20px 20px 20px;
+        transition: margin-left 0.3s ease;
+        max-width: 960px;
+        margin-left: auto;
+        margin-right: auto;
       }
+
       .top-bar {
+        position: fixed;
+        top: 12px;
+        left: 70px;
+        right: 20px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        font-family: 'Oxanium', sans-serif;
+        font-weight: 700;
+        font-size: 1.5em;
+        color: var(--accent-color);
+        user-select: none;
+        white-space: nowrap;
+        transition: color 0.3s;
+      }
+
+      body.dark .top-bar {
+        color: var(--text-light);
+      }
+
+      #price-tiles-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .price-tile {
+        background: var(--accent-color);
+        color: #000;
+        padding: 20px 10px;
+        margin: 0;
+        border-radius: 12px;
+        min-width: 140px;
         font-size: 1.2em;
-        left: 54px;
-        right: 10px;
+        user-select: text;
+        transition: background-color 0.3s, color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: default;
       }
+
+      body.dark .price-tile {
+        background: #003300;
+        color: #ccffcc;
+      }
+
+      .price-tile button.remove-price {
+        background: transparent;
+        border: none;
+        color: inherit;
+        font-size: 1.2em;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0 5px;
+        line-height: 1;
+        user-select: none;
+      }
+      .price-tile button.remove-price:hover {
+        color: #ff4444;
+      }
+
+      #add-price-form {
+        margin-top: 10px;
+        user-select: none;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      #add-price-form input[type="text"] {
+        padding: 6px 8px;
+        font-size: 1em;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        text-transform: uppercase;
+        width: 120px;
+        user-select: text;
+        color: black;
+        background-color: white;
+        transition: all 0.3s;
+      }
+      body.dark #add-price-form input[type="text"] {
+        color: white;
+        background-color: #222;
+        border: 1px solid var(--accent-color);
+      }
+      #add-price-form button {
+        padding: 6px 16px;
+        background: var(--accent-color);
+        border: none;
+        border-radius: 6px;
+        color: #000;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        user-select: none;
+      }
+      #add-price-form button:hover {
+        background: #00cc6a;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 26px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 30px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: black;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--accent-color);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
       iframe.sheet-frame {
-        width: 100%;
-        height: 400px;
-      }
-    }
-
-    /* Table styling for alerts */
-    table {
-      font-family: Arial, sans-serif;
-      font-size: 0.9em;
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th {
-      background-color: #f2f2f2;
-      color: #222;
-      border-bottom: 1px solid #ccc;
-      padding: 6px;
-      text-align: left;
-    }
-    body.dark th {
-      background-color: #222;
-      color: #e0ffe0;
-    }
-    td {
-      color: inherit;
-      border-bottom: 1px solid #ccc;
-      padding: 6px;
-    }
-    button.remove-alert, button.remove-price {
-      background: transparent;
-      border: none;
-      color: #d00;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-    }
-    button.remove-alert:hover, button.remove-price:hover {
-      color: #ff4444;
-    }
-
-    /* Center submit button in alerts form */
-    #alert-form {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      align-items: center;
-    }
-    #alert-form button[type="submit"] {
-      flex: 0 0 auto;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body data-theme-accent="green">
-  <div id="notification-bar" role="alert" aria-live="assertive" aria-atomic="true"></div>
-
-  <div class="hamburger" tabindex="0" role="button" aria-label="Toggle menu" onclick="toggleSidebar()" onkeydown="if(event.key==='Enter' || event.key===' ') toggleSidebar()">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
-  <div class="top-bar" aria-label="Page title">
-    I FILE FOR BANKRUPTCY
-  </div>
-
-  <div id="overlay" onclick="toggleSidebar()" tabindex="-1" aria-hidden="true"></div>
-
-  <nav id="sidebar" class="sidebar" aria-label="Primary navigation" tabindex="-1">
-    <a href="#" class="active" onclick="showTab('home',event)">Home</a>
-    <a href="#" onclick="showTab('sheet',event)">Google Sheet</a>
-    <a href="#" onclick="showTab('alerts',event)">Alerts</a>
-    <a href="https://zerodha.com/brokerage-calculator/#tab-equities" target="_blank" rel="noopener noreferrer">F&O - Options</a>
-    <a href="#" onclick="showTab('settings',event)">Settings</a>
-  </nav>
-
-  <main class="content">
-    <section id="home-tab" aria-label="Home tab content">
-      <h1>Live Prices</h1>
-      <div id="price-tiles-container" aria-live="polite" aria-atomic="true"></div>
-      <form id="add-price-form" aria-label="Add new live price ticker">
-        <input type="text" id="new-price-ticker" placeholder="Ticker (e.g. MSFT)" maxlength="12" autocomplete="off" aria-required="true" required />
-        <button type="submit">Add Ticker</button>
-      </form>
-    </section>
-
-    <section id="sheet-tab" style="display: none;" aria-label="Embedded Google sheet">
-      <h2>Trading Sheet</h2>
-      <div class="iframe-container">
-        <iframe 
-          class="sheet-frame"
-          src="https://docs.google.com/spreadsheets/d/13-rTtZnVhJjVqxV6U1cwFDUf6f61UdNpz-a3-KCy3xA"
-          title="Trading Google Sheet"
-          loading="lazy"
-        ></iframe>
-      </div>
-    </section>
-
-    <section id="alerts-tab" style="display: none;" aria-label="Price alerts">
-      <h2>Price Alerts</h2>
-      <form id="alert-form" aria-label="Add price alert">
-        <label>
-          Ticker:
-          <select id="alert-ticker" required aria-required="true">
-            <!-- Options populated dynamically -->
-          </select>
-        </label>
-        &nbsp;&nbsp;
-        <label>
-          Target Price:
-          <input type="number" id="alert-price" min="0.01" step="any" required aria-required="true" />
-        </label>
-        &nbsp;&nbsp;
-        <label>
-          Condition:
-          <select id="alert-condition" aria-label="Alert condition">
-            <option value="above">Above</option>
-            <option value="below">Below</option>
-          </select>
-        </label>
-        &nbsp;&nbsp;
-        <label>
-          Notes:
-          <input type="text" id="alert-notes" maxlength="100" placeholder="Notes (optional)" autocomplete="off" />
-        </label>
-        &nbsp;&nbsp;
-        <button type="submit">Add Alert</button>
-      </form>
-
-      <h3>Active Alerts</h3>
-      <table id="active-alerts-table" aria-label="Active price alerts" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Target Price</th>
-            <th>Condition</th>
-            <th>Current Price</th>
-            <th>Notes</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="alerts-tbody">
-          <!-- Active alerts rows -->
-        </tbody>
-      </table>
-
-      <h3 style="margin-top: 30px;">Triggered Alerts</h3>
-      <table id="triggered-alerts-table" aria-label="Triggered price alerts" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Target Price</th>
-            <th>Condition</th>
-            <th>Current Price</th>
-            <th>Notes</th>
-            <th>Time Triggered</th>
-          </tr>
-        </thead>
-        <tbody id="triggered-alerts-tbody">
-          <!-- Triggered alerts rows -->
-        </tbody>
-      </table>
-    </section>
-
-    <section id="settings-tab" style="display: none;" aria-label="Settings for theme, dark mode, and alerts">
-      <h2>Settings</h2>
-
-      <div>
-        <p>
-          Dark Mode:&nbsp;
-          <label class="toggle-switch" for="darkToggle">
-            <input type="checkbox" id="darkToggle" aria-checked="false" />
-            <span class="slider"></span>
-          </label>
-        </p>
-      </div>
-
-      <div style="margin-top: 20px;">
-        <label for="theme-select"><strong>Theme Accent Color:</strong></label>
-        <select id="theme-select" aria-label="Select theme accent color">
-          <option value="green">Green (Default)</option>
-          <option value="blue">Blue</option>
-          <option value="orange">Orange</option>
-        </select>
-      </div>
-
-      <!-- CSV Import Section -->
-      <div style="margin-top: 30px;">
-        <label for="csv-upload-input"><strong>Import Alerts from CSV:</strong></label><br/>
-        <input type="file" id="csv-upload-input" accept=".csv,text/csv" aria-describedby="csv-upload-desc" />
-        <button id="csv-import-button" style="margin-left: 10px;">Import CSV</button>
-        <p id="csv-upload-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
-          CSV format: Ticker,Target Price,Condition,Current Price,Notes
-        </p>
-      </div>
-
-      <!-- Pushbullet API Key Settings Section -->
-      <div style="margin-top: 30px;">
-        <label for="pushbullet-api-key-input"><strong>Pushbullet API Key:</strong></label><br/>
-        <input 
-          type="password" 
-          id="pushbullet-api-key-input" 
-          placeholder="Paste your API key here" 
-          autocomplete="off" 
-          aria-describedby="pushbullet-api-key-desc"
-          style="width: 280px; padding: 5px;"
-        />
-        <button id="save-pushbullet-api-key" style="margin-left: 10px;">Save</button>
-        <p id="pushbullet-api-key-status" style="font-size: 0.9em; color: green; margin-top: 4px; display: none;"></p>
-        <p id="pushbullet-api-key-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
-          Your API key is stored only in your browser's local storage.<br/>
-          You can get your token from <a href="https://www.pushbullet.com/#settings" target="_blank" rel="noopener">Pushbullet Settings</a>.
-        </p>
-      </div>
-
-    </section>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.min.js"></script>
-  <script>
-    // Sidebar toggle & overlay
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    const darkToggle = document.getElementById('darkToggle');
-    const themeSelect = document.getElementById('theme-select');
-
-    // Pushbullet API key input elements
-    const pushbulletInput = document.getElementById('pushbullet-api-key-input');
-    const pushbulletSaveBtn = document.getElementById('save-pushbullet-api-key');
-    const pushbulletStatus = document.getElementById('pushbullet-api-key-status');
-
-    let PUSHBULLET_ACCESS_TOKEN = null;
-
-    // ===== Pushbullet API Key management =====
-    function loadPushbulletKeyFromStorage() {
-      const key = localStorage.getItem('pushbullet-api-key');
-      if (key) {
-        PUSHBULLET_ACCESS_TOKEN = key;
-        pushbulletInput.value = key;
-        showPushbulletStatus('API key loaded.', 'green');
-      } else {
-        PUSHBULLET_ACCESS_TOKEN = null;
-        showPushbulletStatus('Pushbullet API key not set. API key is required for notifications.', 'orange', true);
-      }
-    }
-
-    function showPushbulletStatus(msg, color = 'green', persistent = false) {
-      pushbulletStatus.textContent = msg;
-      pushbulletStatus.style.color = color;
-      pushbulletStatus.style.display = 'block';
-      if (!persistent) {
-        setTimeout(() => {
-          pushbulletStatus.style.display = 'none';
-        }, 5000);
-      }
-    }
-
-    pushbulletSaveBtn.addEventListener('click', () => {
-      const key = pushbulletInput.value.trim();
-      if (key) {
-        localStorage.setItem('pushbullet-api-key', key);
-        PUSHBULLET_ACCESS_TOKEN = key;
-        showPushbulletStatus('API key saved.', 'green');
-      } else {
-        localStorage.removeItem('pushbullet-api-key');
-        PUSHBULLET_ACCESS_TOKEN = null;
-        showPushbulletStatus('API key cleared.', 'orange');
-      }
-    });
-
-    function sendPushbulletNotification(title, body) {
-      if (!PUSHBULLET_ACCESS_TOKEN) {
-        console.warn('Pushbullet API key missing, notifications will not be sent. Please enter your API key in Settings.');
-        return;
-      }
-      fetch('https://api.pushbullet.com/v2/pushes', {
-        method: 'POST',
-        headers: {
-          'Access-Token': PUSHBULLET_ACCESS_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: 'note',
-          title: title,
-          body: body
-        })
-      })
-        .then(response => {
-          if (!response.ok) {
-            console.error('Pushbullet notification failed:', response.statusText);
-          }
-        })
-        .catch(error => console.error('Pushbullet notification error:', error));
-    }
-    // ===== End Pushbullet Integration =====
-
-
-    function toggleSidebar() {
-      const isOpen = sidebar.classList.toggle('open');
-      if (isOpen) {
-        overlay.classList.add('show');
-        sidebar.setAttribute('tabindex', '0');
-        sidebar.focus();
-      } else {
-        overlay.classList.remove('show');
-        sidebar.setAttribute('tabindex', '-1');
-      }
-    }
-
-    overlay.onclick = () => {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('show');
-      sidebar.setAttribute('tabindex', '-1');
-    };
-
-    function showTab(tabId, event) {
-      if (event) event.preventDefault();
-
-      const tabs = ['home', 'sheet', 'settings', 'alerts'];
-      tabs.forEach(id => {
-        let el = document.getElementById(id + '-tab');
-        if (el) el.style.display = (id === tabId) ? 'block' : 'none';
-      });
-
-      document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
-
-      if (event && event.target.tagName === 'A') {
-        event.target.classList.add('active');
+        width: 1300px;
+        height: 600px;
+        border: none;
+        border-radius: 8px;
+        margin-top: 20px;
+        user-select: none;
       }
 
-      toggleSidebar();
-    }
-
-    // Dark mode toggle & persist
-    function toggleDarkMode() {
-      if (darkToggle.checked) {
-        document.body.classList.add('dark');
-        darkToggle.setAttribute('aria-checked', 'true');
-        localStorage.setItem('theme-mode', 'dark');
-      } else {
-        document.body.classList.remove('dark');
-        darkToggle.setAttribute('aria-checked', 'false');
-        localStorage.setItem('theme-mode', 'light');
+      .iframe-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
       }
-      updateHamburgerColor();
-    }
-    darkToggle.addEventListener('change', toggleDarkMode);
 
-    // Theme accent color change & persist
-    function setThemeAccent(color) {
-      document.body.setAttribute('data-theme-accent', color);
-      localStorage.setItem('theme-accent', color);
-      const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
-      document.querySelectorAll('.sidebar a').forEach(a => { a.style.color = accentColor; });
-      document.querySelector('.top-bar').style.color = accentColor;
-
-      document.querySelectorAll('.price-tile').forEach(tile => {
-        tile.style.backgroundColor = accentColor;
-        tile.style.color = window.getComputedStyle(document.body).color;
-        updateHamburgerColor();
-      });
-
-      const addButton = document.querySelector('#add-price-form button');
-      if (addButton) addButton.style.backgroundColor = accentColor;
-
-      const notifyBar = document.getElementById("notification-bar");
-      notifyBar.style.backgroundColor = accentColor;
-
-      // Update border color on ticker input in dark mode
-      const tickerInput = document.querySelector('#add-price-form input[type="text"]');
-      if (tickerInput && document.body.classList.contains('dark')) {
-        tickerInput.style.borderColor = accentColor;
+      a.button-link {
+        display: inline-block;
+        margin: 20px 0;
+        padding: 12px 24px;
+        background: var(--accent-color);
+        color: #000;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 8px;
+        user-select: none;
+        transition: background-color 0.3s;
       }
-    }
-    themeSelect.addEventListener('change', e => {
-      setThemeAccent(e.target.value);
-    });
 
-
-    function updateHamburgerColor() {
-      const spans = document.querySelectorAll('.hamburger span');
-      const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
-      spans.forEach(s => s.style.backgroundColor = accentColor);
-    }
-
-    // Currency symbols mapping
-    const currencySymbols = {
-      USD: '$',
-      EUR: '€',
-      GBP: '£',
-      INR: '₹',
-      JPY: '¥',
-      CNY: '¥',
-      AUD: 'A$',
-      CAD: 'C$',
-      CHF: 'CHF',
-      HKD: 'HK$',
-      NZD: 'NZ$',
-      SEK: 'kr',
-      KRW: '₩',
-      SGD: 'S$',
-      NOK: 'kr',
-      MXN: 'Mex$',
-      RUB: '₽',
-      ZAR: 'R',
-      TRY: '₺',
-      BRL: 'R$',
-      TWD: 'NT$',
-      DKK: 'kr',
-      PLN: 'zł',
-      THB: '฿',
-      IDR: 'Rp',
-      HUF: 'Ft',
-      CZK: 'Kč',
-      ILS: '₪',
-      CLP: '$',
-      PHP: '₱',
-      AED: 'د.إ',
-      COP: 'COL$',
-      SAR: '﷼',
-      MYR: 'RM',
-      VND: '₫',
-      // Add more if needed
-    };
-
-    function getCurrencySymbol(code) {
-      if (!code) return '';
-      return currencySymbols[code.toUpperCase()] || code;
-    }
-
-    // Live prices & UI elements
-    const priceTilesContainer = document.getElementById('price-tiles-container');
-    const addPriceForm = document.getElementById('add-price-form');
-    const newPriceTickerInput = document.getElementById('new-price-ticker');
-
-    let subscribedTickers = new Set();
-    // Store objects: {price: number, currency: string}, or null if price unknown
-    const livePrices = {};
-
-    // Protobuf related
-    const yatickerProto = `
-    syntax = "proto3";
-
-    message yaticker {
-      enum QuoteType {
-        NONE = 0;
-        ALTSYMBOL = 5;
-        HEARTBEAT = 7;
-        EQUITY = 8;
-        INDEX = 9;
-        MUTUALFUND = 11;
-        MONEYMARKET = 12;
-        OPTION = 13;
-        CURRENCY = 14;
-        WARRANT = 15;
-        BOND = 17;
-        FUTURE = 18;
-        ETF = 20;
-        COMMODITY = 23;
-        ECNQUOTE = 28;
-        CRYPTOCURRENCY = 41;
-        INDICATOR = 42;
-        INDUSTRY = 1000;
-      };
-
-      enum OptionType {
-        CALL = 0;
-        PUT = 1;
-      };
-
-      enum MarketHoursType {
-        PRE_MARKET = 0;
-        REGULAR_MARKET = 1;
-        POST_MARKET = 2;
-        EXTENDED_HOURS_MARKET = 3;
-      };
-
-      string id = 1;
-      float price = 2;
-      sint64 time = 3;
-      string currency = 4;
-      string exchange = 5;
-      QuoteType quoteType = 6;
-      MarketHoursType marketHours = 7;
-      float changePercent = 8;
-      sint64 dayVolume = 9;
-      float dayHigh = 10;
-      float dayLow = 11;
-      float change = 12;
-      string shortName = 13;
-      sint64 expireDate = 14;
-      float openPrice = 15;
-      float previousClose = 16;
-      float strikePrice = 17;
-      string underlyingSymbol = 18;
-      sint64 openInterest = 19;
-      OptionType optionsType = 20;
-      sint64 miniOption = 21;
-      sint64 lastSize = 22;
-      float bid = 23;
-      sint64 bidSize = 24;
-      float ask = 25;
-      sint64 askSize = 26;
-      sint64 priceHint = 27;
-      sint64 vol_24hr = 28;
-      sint64 volAllCurrencies = 29;
-      string fromcurrency = 30;
-      string lastMarket = 31;
-      double circulatingSupply = 32;
-      double marketcap = 33;
-    };`;
-
-    let yatickerType;
-    try {
-      const root = protobuf.parse(yatickerProto).root;
-      yatickerType = root.lookupType("yaticker");
-      console.log("Protobuf yaticker proto loaded.");
-    } catch (e) {
-      console.error("Failed to parse yaticker proto:", e);
-    }
-
-    function decodeProtobuf(buffer) {
-      if (!yatickerType) return null;
-      try {
-        const decodedMsg = yatickerType.decode(buffer);
-        return yatickerType.toObject(decodedMsg, {
-          longs: String,
-          enums: String,
-          defaults: false
-        });
-      } catch (err) {
-        console.error("Protobuf decode error:", err);
-        return null;
+      a.button-link:hover {
+        background: #00dd55;
       }
-    }
 
-    function createPriceTile(ticker) {
-      const tile = document.createElement('div');
-      tile.className = 'price-tile';
-      tile.setAttribute('data-ticker', ticker);
-
-      const labelSpan = document.createElement('span');
-      labelSpan.className = 'price-label';
-      labelSpan.textContent = `${ticker}: Loading...`;
-
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove-price';
-      removeBtn.setAttribute('aria-label', `Remove ${ticker} ticker`);
-      removeBtn.innerHTML = '&times;';
-      removeBtn.title = 'Remove ticker';
-      removeBtn.onclick = () => removePriceTile(ticker);
-
-      tile.appendChild(labelSpan);
-      tile.appendChild(removeBtn);
-      priceTilesContainer.appendChild(tile);
-
-      updateThemeAccentColorForTile(tile);
-    }
-
-    function addPriceTile(ticker) {
-      ticker = ticker.toUpperCase();
-      if (subscribedTickers.has(ticker)) return;
-      subscribedTickers.add(ticker);
-      livePrices[ticker] = livePrices[ticker] || null;
-
-      createPriceTile(ticker);
-
-      saveSubscribedTickers();
-      updateAlertsTickerOptions();
-      connectWebSocketSubscribe();
-    }
-
-    function removePriceTile(ticker) {
-      ticker = ticker.toUpperCase();
-      if (!subscribedTickers.has(ticker)) return;
-      subscribedTickers.delete(ticker);
-      delete livePrices[ticker];
-      const tile = priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`);
-      if (tile) tile.remove();
-
-      // Remove alerts for this ticker
-      alerts = alerts.filter(a => a.ticker !== ticker);
-      localStorage.setItem('priceAlerts', JSON.stringify(alerts));
-      renderAlerts();
-      updateAlertsTickerOptions();
-
-      saveSubscribedTickers();
-      connectWebSocketSubscribe();
-    }
-
-    function updatePriceTile(ticker, price, currency) {
-      ticker = ticker.toUpperCase();
-      const tile = priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`);
-      if (tile) {
-        const label = tile.querySelector('.price-label');
-        const symbol = getCurrencySymbol(currency);
-        label.textContent = `${ticker}: ${symbol}${price.toFixed(2)}`;
+      #notification-bar {
+        position: fixed;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--accent-color);
+        color: black;
+        font-weight: bold;
+        padding: 12px 24px;
+        border-radius: 6px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        display: none;
+        z-index: 1500;
+        max-width: 90%;
+        user-select: none;
       }
-    }
 
-    function updateThemeAccentColorForTile(tile) {
-      if (!tile) return;
-      const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
-
-      tile.style.backgroundColor = accentColor;
-      tile.style.color = '#000';
-    }
-
-    // Save/Load subscribed tickers & prices
-    function saveSubscribedTickers() {
-      localStorage.setItem('subscribedTickers', JSON.stringify(Array.from(subscribedTickers)));
-      localStorage.setItem('livePrices', JSON.stringify(livePrices));
-    }
-
-    function loadSubscribedTickers() {
-      const storedTickers = JSON.parse(localStorage.getItem('subscribedTickers') || '[]');
-      const storedPrices = JSON.parse(localStorage.getItem('livePrices') || '{}');
-
-      storedTickers.forEach(ticker => {
-        ticker = ticker.toUpperCase();
-        subscribedTickers.add(ticker);
-        if (storedPrices[ticker]) {
-          livePrices[ticker] = storedPrices[ticker];
-        } else {
-          livePrices[ticker] = null;
+      @media (max-width: 600px) {
+        .price-tile {
+          min-width: 100%;
+          margin: 10px 0;
         }
-      });
-    }
-
-    // ALERTS
-
-    const notificationBar = document.getElementById('notification-bar');
-    const alertForm = document.getElementById('alert-form');
-    const alertTickerSelect = document.getElementById('alert-ticker');
-
-    let alerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
-    let triggeredAlerts = JSON.parse(localStorage.getItem('triggeredPriceAlerts') || '[]');
-
-    function updateAlertsTickerOptions() {
-      const currentVal = alertTickerSelect.value;
-      alertTickerSelect.innerHTML = '';
-      const sortedTickers = Array.from(subscribedTickers).sort();
-      sortedTickers.forEach(ticker => {
-        const option = document.createElement('option');
-        option.value = ticker;
-        option.textContent = ticker;
-        alertTickerSelect.appendChild(option);
-      });
-      if (currentVal && sortedTickers.includes(currentVal)) {
-        alertTickerSelect.value = currentVal;
-      }
-    }
-
-    // Format date/time as dd/mm/yyyy hh:mm:ss
-    function formatDateTime(date) {
-      const pad = (n) => n.toString().padStart(2, '0');
-      const day = pad(date.getDate());
-      const month = pad(date.getMonth() + 1);
-      const year = date.getFullYear();
-      const hours = pad(date.getHours());
-      const minutes = pad(date.getMinutes());
-      const seconds = pad(date.getSeconds());
-      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-    }
-
-    function renderAlerts() {
-      const tbody = document.getElementById('alerts-tbody');
-      tbody.innerHTML = '';
-
-      if (alerts.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 6;
-        td.textContent = 'No active alerts';
-        td.style.textAlign = 'center';
-        td.style.padding = '10px';
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return;
+        .content {
+          padding: 70px 10px 20px 10px;
+        }
+        .top-bar {
+          font-size: 1.2em;
+          left: 54px;
+          right: 10px;
+        }
+        iframe.sheet-frame {
+          width: 100%;
+          height: 400px;
+        }
       }
 
-      alerts.sort((a, b) => {
-        if (a.ticker !== b.ticker) return a.ticker.localeCompare(b.ticker);
-        if (a.condition !== b.condition) return a.condition.localeCompare(b.condition);
-        return a.price - b.price;
-      });
-
-      alerts.forEach(alert => {
-        const tr = document.createElement('tr');
-
-        const tdTicker = document.createElement('td');
-        tdTicker.textContent = alert.ticker;
-        tdTicker.style.padding = '6px';
-
-        const tdPrice = document.createElement('td');
-        const symbol = getCurrencySymbol(alert.currency);
-        tdPrice.textContent = `${symbol}${alert.price.toFixed(2)}`;
-        tdPrice.style.padding = '6px';
-
-        const tdCond = document.createElement('td');
-        tdCond.textContent = alert.condition.charAt(0).toUpperCase() + alert.condition.slice(1);
-        tdCond.style.padding = '6px';
-
-        const currentPrice = livePrices[alert.ticker]?.price;
-        const tdCurrent = document.createElement('td');
-        tdCurrent.textContent = typeof currentPrice === 'number' ? 
-          `${getCurrencySymbol(livePrices[alert.ticker]?.currency)}${currentPrice.toFixed(2)}` : 'N/A';
-        tdCurrent.style.padding = '6px';
-        tdCurrent.style.color = 'inherit';
-
-        const tdNotes = document.createElement('td');
-        tdNotes.textContent = alert.notes || '';
-        tdNotes.style.padding = '6px';
-
-        const tdActions = document.createElement('td');
-        tdActions.style.padding = '6px';
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-alert';
-        removeBtn.textContent = 'Remove';
-        removeBtn.onclick = () => removeAlert(alert.id);
-        tdActions.appendChild(removeBtn);
-
-        tr.appendChild(tdTicker);
-        tr.appendChild(tdPrice);
-        tr.appendChild(tdCond);
-        tr.appendChild(tdCurrent);
-        tr.appendChild(tdNotes);
-        tr.appendChild(tdActions);
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderTriggeredAlerts() {
-      const tbody = document.getElementById('triggered-alerts-tbody');
-      tbody.innerHTML = '';
-
-      if (triggeredAlerts.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 6;
-        td.textContent = 'No triggered alerts';
-        td.style.textAlign = 'center';
-        td.style.padding = '10px';
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return;
+      /* Table styling for alerts */
+      table {
+        font-family: Arial, sans-serif;
+        font-size: 0.9em;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background-color: #f2f2f2;
+        color: #222;
+        border-bottom: 1px solid #ccc;
+        padding: 6px;
+        text-align: left;
+      }
+      body.dark th {
+        background-color: #222;
+        color: #e0ffe0;
+      }
+      td {
+        color: inherit;
+        border-bottom: 1px solid #ccc;
+        padding: 6px;
+      }
+      button.remove-alert, button.remove-price {
+        background: transparent;
+        border: none;
+        color: #d00;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+      }
+      button.remove-alert:hover, button.remove-price:hover {
+        color: #ff4444;
       }
 
-      triggeredAlerts.sort((a, b) => b.timeTriggered - a.timeTriggered);
+      /* Center submit button in alerts form */
+      #alert-form {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+      }
+      #alert-form button[type="submit"] {
+        flex: 0 0 auto;
+        margin-top: 10px;
+      }
 
-      triggeredAlerts.forEach(alert => {
-        const tr = document.createElement('tr');
+      /*Styling Elements for SingleTon*/
+      #stock-tab * {
+        box-sizing: border-box;      
+      }
 
-        const tdTicker = document.createElement('td');
-        tdTicker.textContent = alert.ticker;
-        tdTicker.style.padding = '6px';
+      #stock-tab body,
+      #stock-tab {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: var(--ben-light);
+      }
+      body.dark #stock-tab {
+        background: var(--ben-dark);
+      }
 
-        const tdPrice = document.createElement('td');
-        const symbol = getCurrencySymbol(alert.currency);
-        tdPrice.textContent = `${symbol}${alert.price.toFixed(2)}`;
-        tdPrice.style.padding = '6px';
+      #stock-tab .content-area {
+        display: grid;
+        width: 100%;
+        padding: 0 calc(var(--gap-size, 32px) * 0.5);
+        max-width: 960px;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: var(--gap-size, 32px);
+      }
+      #stock-tab .span-full-grid,
+      #stock-tab #symbol-info,
+      #stock-tab #advanced-chart,
+      #stock-tab #company-profile,
+      #stock-tab #fundamental-data {
+        grid-column: span 2;
+      }
+      #stock-tab .span-one-column,
+      #stock-tab #technical-analysis,
+      #stock-tab #top-stories {
+        grid-column: span 1;
+      }
+      #stock-tab #ticker-tape {
+        width: 100%;
+      }
+      #stock-tab #advanced-chart {
+        height: 500px;
+      }
+      #stock-tab #company-profile {
+        height: 300px;
+      }
+      #stock-tab #fundamental-data {
+        height: 990px;
+      }
+      #stock-tab #technical-analysis,
+      #stock-tab #top-stories {
+        height: 425px;
+      }
+      @media (max-width: 800px) {
+        #stock-tab main > section,
+        #stock-tab .span-full-grid,
+        #stock-tab #technical-analysis,
+        #stock-tab #top-stories,
+        #stock-tab #powered-by-tv {
+          grid-column: span 2;
+        }
+      }
 
-        const tdCond = document.createElement('td');
-        tdCond.textContent = alert.condition.charAt(0).toUpperCase() + alert.condition.slice(1);
-        tdCond.style.padding = '6px';
+    </style>
+  </head>
+  <body data-theme-accent="green">
+    <div id="notification-bar" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
-        const tdCurrent = document.createElement('td');
-        tdCurrent.textContent = typeof alert.currentPrice === 'number' ? 
-          `${getCurrencySymbol(livePrices[alert.ticker]?.currency)}${alert.currentPrice.toFixed(2)}` : 'N/A';
-        tdCurrent.style.padding = '6px';
+    <div class="hamburger" tabindex="0" role="button" aria-label="Toggle menu" onclick="toggleSidebar()" onkeydown="if(event.key==='Enter' || event.key===' ') toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
 
-        const tdNotes = document.createElement('td');
-        tdNotes.textContent = alert.notes || '';
-        tdNotes.style.padding = '6px';
+    <div class="top-bar" aria-label="Page title">
+      <HEADER> I DECLARE BANKRUPTCY</HEADER>
+    </div>
 
-        const tdTime = document.createElement('td');
-        tdTime.style.padding = '6px';
-        const d = new Date(alert.timeTriggered);
-        tdTime.textContent = formatDateTime(d);
+    <div id="overlay" onclick="toggleSidebar()" tabindex="-1" aria-hidden="true"></div>
 
-        tr.appendChild(tdTicker);
-        tr.appendChild(tdPrice);
-        tr.appendChild(tdCond);
-        tr.appendChild(tdCurrent);
-        tr.appendChild(tdNotes);
-        tr.appendChild(tdTime);
+    <nav id="sidebar" class="sidebar" aria-label="Primary navigation" tabindex="-1">
+      <a href="#" class="active" onclick="showTab('home',event)">Home</a>
+      <a href="#" onclick="showTab('singlestock',event)">SingleTon</a>
+      <a href="#" onclick="showTab('sheet',event)">Google Sheet</a>
+      <a href="#" onclick="showTab('alerts',event)">Alerts</a>
+      <a href="https://zerodha.com/brokerage-calculator/#tab-equities" target="_blank" rel="noopener noreferrer">F&O - Options</a>
+      <a href="#" onclick="showTab('settings',event)">Settings</a>
+    </nav>
+      <nav id="ticker-tape"></nav> 
 
-        tbody.appendChild(tr);
+    <main class="content">
+      <section id="home-tab" aria-label="Home tab content">
+        <h1>Live Prices</h1> 
+        <nav id="ticker-tape"></nav> 
+        <div id="price-tiles-container" aria-live="polite" aria-atomic="true"></div>
+        <form id="add-price-form" aria-label="Add new live price ticker">
+          <input type="text" id="new-price-ticker" placeholder="Ticker (e.g. MSFT)" maxlength="20" autocomplete="off" aria-required="true" required />
+          <button type="submit">Add Ticker</button>
+        </form>
+      </section>
+
+      <section id="singlestock-tab" style="display: none;" aria-label="singlestock content">
+        <table width="100%">
+          <tr>
+            <td>
+              <h2 style="margin:0;">SingleTon</h2>
+            </td>
+            <td align="right" style="vertical-align: middle;">
+              <input type="text" id="symbol-input" placeholder="Enter stock symbol (e.g., BSE:CUB)" required style="text-transform: uppercase;"/>
+              <button id="symbol-submit">Find</button>
+            </td>
+          </tr>
+        </table>
+
+        <section id="stock-tab">
+          <nav id="ticker-tape"></nav>
+        
+          <div class="content-area">
+            <section id="symbol-info"></section>
+            <section id="advanced-chart"></section>
+            <section id="company-profile"></section>
+            <section id="fundamental-data"></section>
+            <section id="technical-analysis"></section>
+            <section id="top-stories"></section>
+          </div>
+        </section>
+      </section>
+
+      <section id="sheet-tab" style="display: none;" aria-label="Embedded Google sheet">
+        <h2>Trading Sheet</h2>
+        <div class="iframe-container">
+          <iframe 
+            class="sheet-frame"
+            src="https://docs.google.com/spreadsheets/d/13-rTtZnVhJjVqxV6U1cwFDUf6f61UdNpz-a3-KCy3xA"
+            title="Trading Google Sheet"
+            loading="lazy">
+          </iframe>
+        </div>
+      </section>
+
+      <section id="alerts-tab" style="display: none;" aria-label="Price alerts">
+        <h2>Price Alerts</h2>
+        <form id="alert-form" aria-label="Add price alert">
+          <label>
+            Ticker:
+            <select id="alert-ticker" required aria-required="true">
+              <!-- Options populated dynamically -->
+            </select>
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            Target Price:
+            <input type="number" id="alert-price" min="0.01" step="any" required aria-required="true" />
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            Condition:
+            <select id="alert-condition" aria-label="Alert condition">
+              <option value="above">Above</option>
+              <option value="below">Below</option>
+            </select>
+          </label>
+          &nbsp;&nbsp;
+          <label>
+            Notes:
+            <input type="text" id="alert-notes" maxlength="100" placeholder="Notes (optional)" autocomplete="off" />
+          </label>
+          &nbsp;&nbsp;
+          <button type="submit">Add Alert</button>
+        </form>
+
+        <h3>Active Alerts</h3>
+        <table id="active-alerts-table" aria-label="Active price alerts" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Target Price</th>
+              <th>Condition</th>
+              <th>Current Price</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-tbody">
+            <!-- Active alerts rows -->
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 30px;">Triggered Alerts</h3>
+        <table id="triggered-alerts-table" aria-label="Triggered price alerts" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Target Price</th>
+              <th>Condition</th>
+              <th>Current Price</th>
+              <th>Notes</th>
+              <th>Time Triggered</th>
+            </tr>
+          </thead>
+          <tbody id="triggered-alerts-tbody">
+            <!-- Triggered alerts rows -->
+          </tbody>
+        </table>
+      </section>
+
+      <section id="settings-tab" style="display: none;" aria-label="Settings for theme, dark mode, and alerts">
+        <h2>Settings</h2>
+        <div>
+          <p>
+            Dark Mode:&nbsp;
+            <label class="toggle-switch" for="darkToggle">
+              <input type="checkbox" id="darkToggle" aria-checked="false" />
+              <span class="slider"></span>
+            </label>
+          </p>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <label for="theme-select"><strong>Theme Accent Color:</strong></label>
+          <select id="theme-select" aria-label="Select theme accent color">
+            <option value="green">Green (Default)</option>
+            <option value="blue">Blue</option>
+            <option value="orange">Orange</option>
+          </select>
+        </div>
+
+        <!-- CSV Import Section -->
+        <div style="margin-top: 30px;">
+          <label for="csv-upload-input"><strong>Import Alerts from CSV:</strong></label><br/>
+          <input type="file" id="csv-upload-input" accept=".csv,text/csv" aria-describedby="csv-upload-desc" />
+          <button id="csv-import-button" style="margin-left: 10px;">Import CSV</button>
+          <p id="csv-upload-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
+            CSV format: Ticker,Target Price,Condition,Current Price,Notes
+          </p>
+        </div>
+
+        <!-- Pushbullet API Key Settings Section -->
+        <div style="margin-top: 30px;">
+          <label for="pushbullet-api-key-input"><strong>Pushbullet API Key:</strong></label><br/>
+          <input 
+            type="password" 
+            id="pushbullet-api-key-input" 
+            placeholder="Paste your API key here" 
+            autocomplete="off" 
+            aria-describedby="pushbullet-api-key-desc"
+            style="width: 280px; padding: 5px;"
+          />
+          <button id="save-pushbullet-api-key" style="margin-left: 10px;">Save</button>
+          <p id="pushbullet-api-key-status" style="font-size: 0.9em; color: green; margin-top: 4px; display: none;"></p>
+          <p id="pushbullet-api-key-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
+            Your API key is stored only in your browser's local storage.<br/>
+            You can get your token from <a href="https://www.pushbullet.com/#settings" target="_blank" rel="noopener">Pushbullet Settings</a>.
+          </p>
+        </div>
+        
+        <!-- Ticker Tape Setup Section -->
+        <div id="settingsView" class="view" role="tabpanel" tabindex="0" aria-labelledby="btnSettings">
+          <div id="controls">
+            <label for="symbolInput">
+              Ticker Tape Setup
+            </label><br />
+            <textarea id="symbolInput" placeholder="NASDAQ:AAPL&#10;BSE:CUB&#10;NASDAQ:TSLA"></textarea>
+            <button id="saveBtn">Save Symbols</button>
+            <p id="ticker-tape-syntax-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
+              Syntax - EXCHANGE:SYMBOL
+            </p>
+          </div>
+        </div>
+    
+      </section>
+    </main>
+
+    <!-- Ticker Tape Setup in settings page --> 
+    <script>
+      // Elements references
+      const symbolInput = document.getElementById('symbolInput');
+      const saveBtn = document.getElementById('saveBtn');
+
+      // Load saved symbols or default:
+      function loadSymbolsFromStorage() {
+        const saved = localStorage.getItem('tickerSymbols');
+        if (saved) {
+          try {
+            const arr = JSON.parse(saved);
+            if (Array.isArray(arr) && arr.length > 0) {
+              return arr;
+            }
+          } catch { /* ignore parsing errors */ }
+        }
+        return ['NASDAQ:AAPL', 'BSE:CUB', 'NASDAQ:TSLA'];
+      }
+
+      // Save symbols to localStorage
+      function saveSymbolsToStorage(symbols) {
+        localStorage.setItem('tickerSymbols', JSON.stringify(symbols));
+      }
+
+      // Uppercase enforcement as user types, keeping cursor position
+      symbolInput.addEventListener('input', () => {
+        const start = symbolInput.selectionStart;
+        const end = symbolInput.selectionEnd;
+        symbolInput.value = symbolInput.value.toUpperCase();
+        symbolInput.setSelectionRange(start, end);
       });
-    }
 
-    function addAlert(ticker, price, condition, notes) {
-      const id = Date.now();
-      const currency = (livePrices[ticker]?.currency) || '';
-      alerts.push({ id, ticker, price, condition, notes: notes || '', currency });
-      localStorage.setItem('priceAlerts', JSON.stringify(alerts));
-      renderAlerts();
-    }
+      // Load initial data on page load
+      window.addEventListener('load', () => {
+        const symbols = loadSymbolsFromStorage();
+        symbolInput.value = symbols.join('\n');
+      });
 
-    function removeAlert(id) {
-      alerts = alerts.filter(a => a.id !== id);
-      localStorage.setItem('priceAlerts', JSON.stringify(alerts));
-      renderAlerts();
-    }
+      // Save button handler
+      saveBtn.addEventListener('click', () => {
+        const symbols = symbolInput.value
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
 
-    alertForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const ticker = alertTickerSelect.value;
-      const price = parseFloat(document.getElementById('alert-price').value);
-      const condition = document.getElementById('alert-condition').value;
-      const notes = document.getElementById('alert-notes').value.trim();
-      const currency = (livePrices[ticker]?.currency) || '';
-
-      if (price > 0 && ticker) {
-        const duplicate = alerts.find(a =>
-          a.ticker === ticker &&
-          a.price === price &&
-          a.condition === condition &&
-          a.notes === notes &&
-          a.currency === currency
-        );
-        if (duplicate) {
-          showNotification('This alert already exists.');
+        if (symbols.length === 0) {
+          alert('Please enter at least one symbol.');
           return;
         }
-        addAlert(ticker, price, condition, notes);
-        alertForm.reset();
-      }
-    });
+        saveSymbolsToStorage(symbols);
+      });  
+    </script>
 
-    renderAlerts();
+    <!-- Trading View Widgets Logic --> 
+    <script type="module">
+      import { loadWidgets, widgetContainers } from './tradingview-widgets.js';
 
-    function checkAlerts(ticker, currentPrice) {
-      const currentCurrency = livePrices[ticker]?.currency || '';
-      if (!alerts || alerts.length === 0) return;
-      const triggered = alerts.filter(a => a.ticker === ticker && a.currency === currentCurrency).filter(a => {
-        return (a.condition === 'above' && currentPrice >= a.price)
-          || (a.condition === 'below' && currentPrice <= a.price);
+      const darkToggleer = document.getElementById('darkToggle');
+      const symbolInput = document.getElementById('symbol-input');
+      const symbolSubmit = document.getElementById('symbol-submit');
+      const symbols = loadSymbolsFromStorage();
+
+      // Initialization on DOM ready
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedSymbol = localStorage.getItem('stockSymbol') || 'BSE:CUB';
+        symbolInput.value = savedSymbol;
+        loadWidgets(savedSymbol, darkToggleer, widgetContainers, symbols);
       });
-      if (triggered.length > 0) {
-        triggered.forEach(alert => {
-          const symbol = getCurrencySymbol(alert.currency);
-          let message = `Alert! ${alert.ticker} is ${alert.condition} ${symbol}${alert.price.toFixed(2)} (Current: ${symbol}${currentPrice.toFixed(2)})`;
-          
-           if (alert.notes && alert.notes.trim().length > 0) {
-              message += `\nNotes: ${alert.notes}`;
+
+      // Reload widgets on dark mode toggle change
+      darkToggleer.addEventListener('change', () => {
+        // Your existing toggleDarkMode function can be called here if needed
+        loadWidgets(localStorage.getItem('stockSymbol') || 'BSE:CUB', darkToggleer, widgetContainers, symbols);
+      });
+
+      // Handle symbol submit button click
+      symbolSubmit.addEventListener('click', () => {
+        const newSymbol = symbolInput.value.trim().toUpperCase();
+        if (!newSymbol) {
+          alert('Please enter a valid stock symbol.');
+          return;
+        }
+        localStorage.setItem('stockSymbol', newSymbol);
+        loadWidgets(newSymbol, darkToggleer, widgetContainers, symbols);
+      });
+
+      // Optional: load widgets on enter key press in symbol input
+      symbolInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          symbolSubmit.click();
+        }
+      });
+    </script>
+
+    <!-- Protbuf Reuired for Decoding Yahoo Finance WebSocket --> 
+    <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.min.js"></script>
+
+    <!-- Remaining Logic --> 
+    <script>
+      // Sidebar toggle & overlay
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      const darkToggle = document.getElementById('darkToggle');
+      const themeSelect = document.getElementById('theme-select');
+
+      // Pushbullet API key input elements
+      const pushbulletInput = document.getElementById('pushbullet-api-key-input');
+      const pushbulletSaveBtn = document.getElementById('save-pushbullet-api-key');
+      const pushbulletStatus = document.getElementById('pushbullet-api-key-status');
+
+      let PUSHBULLET_ACCESS_TOKEN = null;
+
+      // ===== Pushbullet API Key management =====
+      function loadPushbulletKeyFromStorage() {
+        const key = localStorage.getItem('pushbullet-api-key');
+        if (key) {
+          PUSHBULLET_ACCESS_TOKEN = key;
+          pushbulletInput.value = key;
+          showPushbulletStatus('API key loaded.', 'green');
+        } else {
+          PUSHBULLET_ACCESS_TOKEN = null;
+          showPushbulletStatus('Pushbullet API key not set. API key is required for notifications.', 'orange', true);
+        }
+      }
+
+      function showPushbulletStatus(msg, color = 'green', persistent = false) {
+        pushbulletStatus.textContent = msg;
+        pushbulletStatus.style.color = color;
+        pushbulletStatus.style.display = 'block';
+        if (!persistent) {
+          setTimeout(() => {
+            pushbulletStatus.style.display = 'none';
+          }, 5000);
+        }
+      }
+
+      pushbulletSaveBtn.addEventListener('click', () => {
+        const key = pushbulletInput.value.trim();
+        if (key) {
+          localStorage.setItem('pushbullet-api-key', key);
+          PUSHBULLET_ACCESS_TOKEN = key;
+          showPushbulletStatus('API key saved.', 'green');
+        } else {
+          localStorage.removeItem('pushbullet-api-key');
+          PUSHBULLET_ACCESS_TOKEN = null;
+          showPushbulletStatus('API key cleared.', 'orange');
+        }
+      });
+
+      function sendPushbulletNotification(title, body) {
+        if (!PUSHBULLET_ACCESS_TOKEN) {
+          console.warn('Pushbullet API key missing, notifications will not be sent. Please enter your API key in Settings.');
+          return;
+        }
+        fetch('https://api.pushbullet.com/v2/pushes', {
+          method: 'POST',
+          headers: {
+            'Access-Token': PUSHBULLET_ACCESS_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            type: 'note',
+            title: title,
+            body: body
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              console.error('Pushbullet notification failed:', response.statusText);
             }
-          // Existing in-page notification
-          showNotification(message);
-
-          // Send Pushbullet notification
-          sendPushbulletNotification(`Alert: ${alert.ticker}`, message);
-
-          removeAlert(alert.id);
-          triggeredAlerts.push({
-            id: alert.id,
-            ticker: alert.ticker,
-            price: alert.price,
-            condition: alert.condition,
-            notes: alert.notes || '',
-            currentPrice: currentPrice,
-            currency: alert.currency,
-            timeTriggered: Date.now(),
-          });
-        });
-        localStorage.setItem('triggeredPriceAlerts', JSON.stringify(triggeredAlerts));
-        renderTriggeredAlerts();
+          })
+          .catch(error => console.error('Pushbullet notification error:', error));
       }
-    }
+      // ===== End Pushbullet Integration =====
 
-    function showNotification(msg) {
-      notificationBar.textContent = msg;
-      notificationBar.style.display = 'block';
-      setTimeout(() => {
-        notificationBar.style.display = 'none';
-      }, 10000);
-    }
 
-    // ===== Yahoo Finance WebSocket logic =====
-
-    const wsURL = 'wss://streamer.finance.yahoo.com';
-    let socket = null;
-
-    function connectWebSocketSubscribe() {
-      if (!socket || socket.readyState !== WebSocket.OPEN) return;
-      if (subscribedTickers.size === 0) return;
-      const subscribeMsg = JSON.stringify({ subscribe: Array.from(subscribedTickers).sort() });
-      socket.send(subscribeMsg);
-      console.log("Subscribed tickers updated:", Array.from(subscribedTickers).sort());
-    }
-
-    function createOrResetSocket() {
-      if (socket) {
-        socket.close();
-        socket = null;
+      function toggleSidebar() {
+        const isOpen = sidebar.classList.toggle('open');
+        if (isOpen) {
+          overlay.classList.add('show');
+          sidebar.setAttribute('tabindex', '0');
+          sidebar.focus();
+        } else {
+          overlay.classList.remove('show');
+          sidebar.setAttribute('tabindex', '-1');
+        }
       }
 
-      socket = new WebSocket(wsURL);
-      socket.binaryType = 'arraybuffer';
-
-      socket.onopen = () => {
-        console.log("Yahoo Finance WebSocket connected");
-        connectWebSocketSubscribe();
+      overlay.onclick = () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        sidebar.setAttribute('tabindex', '-1');
       };
 
-      socket.onmessage = event => {
-        const data = event.data;
+      function showTab(tabId, event) {
+        if (event) event.preventDefault();
 
-        if (typeof data === "string") {
-          try {
-            const jsonMsg = JSON.parse(data);
-            if (!tryUpdateFromJsonMsg(jsonMsg)) {
-              console.log("JSON received but no price update found");
-            }
-          } catch (e) {
-            try {
-              const binary = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-              const protobufMsg = decodeProtobuf(binary);
-              if (protobufMsg) {
-                if (!tryUpdateFromProtobufMsg(protobufMsg)) {
-                  console.log("Protobuf decoded but no price update");
-                }
-              } else {
-                console.warn("Failed to decode protobuf message from base64 string");
-              }
-            } catch (err) {
-              console.warn("Error decoding base64 protobuf message:", err);
-            }
+        const tabs = ['home', 'sheet', 'settings', 'alerts', 'singlestock'];
+        tabs.forEach(id => {
+          let el = document.getElementById(id + '-tab');
+          if (el) el.style.display = (id === tabId) ? 'block' : 'none';
+        });
+
+        document.querySelectorAll('#sidebar a').forEach(a => a.classList.remove('active'));
+
+        if (event && event.target.tagName === 'A') {
+          event.target.classList.add('active');
+        }
+
+        toggleSidebar();
+      }
+
+      // Dark mode toggle & persist
+      function toggleDarkMode() {
+        if (darkToggle.checked) {
+          document.body.classList.add('dark');
+          darkToggle.setAttribute('aria-checked', 'true');
+          localStorage.setItem('theme-mode', 'dark');
+        } else {
+          document.body.classList.remove('dark');
+          darkToggle.setAttribute('aria-checked', 'false');
+          localStorage.setItem('theme-mode', 'light');
+        }
+        updateHamburgerColor();
+      }
+      darkToggle.addEventListener('change', toggleDarkMode);
+
+      // Theme accent color change & persist
+      function setThemeAccent(color) {
+        document.body.setAttribute('data-theme-accent', color);
+        localStorage.setItem('theme-accent', color);
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
+        document.querySelectorAll('.sidebar a').forEach(a => { a.style.color = accentColor; });
+        document.querySelector('.top-bar').style.color = accentColor;
+
+        document.querySelectorAll('.price-tile').forEach(tile => {
+          tile.style.backgroundColor = accentColor;
+          tile.style.color = window.getComputedStyle(document.body).color;
+          updateHamburgerColor();
+        });
+
+        const addButton = document.querySelector('#add-price-form button');
+        if (addButton) addButton.style.backgroundColor = accentColor;
+
+        const notifyBar = document.getElementById("notification-bar");
+        notifyBar.style.backgroundColor = accentColor;
+
+        // Update border color on ticker input in dark mode
+        const tickerInput = document.querySelector('#add-price-form input[type="text"]');
+        if (tickerInput && document.body.classList.contains('dark')) {
+          tickerInput.style.borderColor = accentColor;
+        }
+      }
+      themeSelect.addEventListener('change', e => {
+        setThemeAccent(e.target.value);
+      });
+
+
+      function updateHamburgerColor() {
+        const spans = document.querySelectorAll('.hamburger span');
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
+        spans.forEach(s => s.style.backgroundColor = accentColor);
+      }
+
+      // Currency symbols mapping
+      const currencySymbols = {
+        USD: '$',
+        EUR: '€',
+        GBP: '£',
+        INR: '₹',
+        JPY: '¥',
+        CNY: '¥',
+        AUD: 'A$',
+        CAD: 'C$',
+        CHF: 'CHF',
+        HKD: 'HK$',
+        NZD: 'NZ$',
+        SEK: 'kr',
+        KRW: '₩',
+        SGD: 'S$',
+        NOK: 'kr',
+        MXN: 'Mex$',
+        RUB: '₽',
+        ZAR: 'R',
+        TRY: '₺',
+        BRL: 'R$',
+        TWD: 'NT$',
+        DKK: 'kr',
+        PLN: 'zł',
+        THB: '฿',
+        IDR: 'Rp',
+        HUF: 'Ft',
+        CZK: 'Kč',
+        ILS: '₪',
+        CLP: '$',
+        PHP: '₱',
+        AED: 'د.إ',
+        COP: 'COL$',
+        SAR: '﷼',
+        MYR: 'RM',
+        VND: '₫',
+        // Add more if needed
+      };
+
+      function getCurrencySymbol(ticker, code) {
+        let currCode = code;
+        if (!currCode) {
+          currCode = (ticker.endsWith('.NS') || ticker.endsWith('.BO')) ? 'INR' : 'USD';
+        }
+        currCode = currCode.toUpperCase();
+        return currencySymbols[currCode] || currCode;
+      }
+
+      // Live prices & UI elements
+      const priceTilesContainer = document.getElementById('price-tiles-container');
+      const addPriceForm = document.getElementById('add-price-form');
+      const newPriceTickerInput = document.getElementById('new-price-ticker');
+
+      let subscribedTickers = new Set();
+      // Store objects: {price: number, currency: string}, or null if price unknown
+      const livePrices = {};
+
+      // Protobuf related
+      const yatickerProto = `
+      syntax = "proto3";
+
+      message yaticker {
+        enum QuoteType {
+          NONE = 0;
+          ALTSYMBOL = 5;
+          HEARTBEAT = 7;
+          EQUITY = 8;
+          INDEX = 9;
+          MUTUALFUND = 11;
+          MONEYMARKET = 12;
+          OPTION = 13;
+          CURRENCY = 14;
+          WARRANT = 15;
+          BOND = 17;
+          FUTURE = 18;
+          ETF = 20;
+          COMMODITY = 23;
+          ECNQUOTE = 28;
+          CRYPTOCURRENCY = 41;
+          INDICATOR = 42;
+          INDUSTRY = 1000;
+        };
+
+        enum OptionType {
+          CALL = 0;
+          PUT = 1;
+        };
+
+        enum MarketHoursType {
+          PRE_MARKET = 0;
+          REGULAR_MARKET = 1;
+          POST_MARKET = 2;
+          EXTENDED_HOURS_MARKET = 3;
+        };
+
+        string id = 1;
+        float price = 2;
+        sint64 time = 3;
+        string currency = 4;
+        string exchange = 5;
+        QuoteType quoteType = 6;
+        MarketHoursType marketHours = 7;
+        float changePercent = 8;
+        sint64 dayVolume = 9;
+        float dayHigh = 10;
+        float dayLow = 11;
+        float change = 12;
+        string shortName = 13;
+        sint64 expireDate = 14;
+        float openPrice = 15;
+        float previousClose = 16;
+        float strikePrice = 17;
+        string underlyingSymbol = 18;
+        sint64 openInterest = 19;
+        OptionType optionsType = 20;
+        sint64 miniOption = 21;
+        sint64 lastSize = 22;
+        float bid = 23;
+        sint64 bidSize = 24;
+        float ask = 25;
+        sint64 askSize = 26;
+        sint64 priceHint = 27;
+        sint64 vol_24hr = 28;
+        sint64 volAllCurrencies = 29;
+        string fromcurrency = 30;
+        string lastMarket = 31;
+        double circulatingSupply = 32;
+        double marketcap = 33;
+      };`;
+
+      let yatickerType;
+      try {
+        const root = protobuf.parse(yatickerProto).root;
+        yatickerType = root.lookupType("yaticker");
+        console.log("Protobuf yaticker proto loaded.");
+      } catch (e) {
+        console.error("Failed to parse yaticker proto:", e);
+      }
+
+      function decodeProtobuf(buffer) {
+        if (!yatickerType) return null;
+        try {
+          const decodedMsg = yatickerType.decode(buffer);
+          return yatickerType.toObject(decodedMsg, {
+            longs: String,
+            enums: String,
+            defaults: false
+          });
+        } catch (err) {
+          console.error("Protobuf decode error:", err);
+          return null;
+        }
+      }
+
+      function createPriceTile(ticker) {
+        const tile = document.createElement('div');
+        tile.className = 'price-tile';
+        tile.setAttribute('data-ticker', ticker);
+
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 'price-label';
+        labelSpan.textContent = `${ticker}: Loading...`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-price';
+        removeBtn.setAttribute('aria-label', `Remove ${ticker} ticker`);
+        removeBtn.innerHTML = '&times;';
+        removeBtn.title = 'Remove ticker';
+        removeBtn.onclick = () => removePriceTile(ticker);
+
+        tile.appendChild(labelSpan);
+        tile.appendChild(removeBtn);
+        priceTilesContainer.appendChild(tile);
+
+        updateThemeAccentColorForTile(tile);
+      }
+
+      function addPriceTile(ticker) {
+        ticker = ticker.toUpperCase();
+        if (subscribedTickers.has(ticker)) return;
+        subscribedTickers.add(ticker);
+        livePrices[ticker] = livePrices[ticker] || null;
+
+        createPriceTile(ticker);
+
+        saveSubscribedTickers();+
+        updateAlertsTickerOptions();
+        connectWebSocketSubscribe();
+      }
+
+      function removePriceTile(ticker) {
+        ticker = ticker.toUpperCase();
+        if (!subscribedTickers.has(ticker)) return;
+        subscribedTickers.delete(ticker);
+        delete livePrices[ticker];
+        const tile = priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`);
+        if (tile) tile.remove();
+
+        // Remove alerts for this ticker
+        alerts = alerts.filter(a => a.ticker !== ticker);
+        localStorage.setItem('priceAlerts', JSON.stringify(alerts));
+        renderAlerts();
+        updateAlertsTickerOptions();
+
+        saveSubscribedTickers();
+        connectWebSocketSubscribe();
+      }
+
+      function updatePriceTile(ticker, price, currency) {
+        ticker = ticker.toUpperCase();
+        const tile = priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`);
+        if (tile) {
+          const label = tile.querySelector('.price-label');
+          const symbol = getCurrencySymbol(ticker, currency);
+          label.textContent = `${ticker}: ${symbol}${price.toFixed(2)}`;
+        }
+      }
+
+      function updateThemeAccentColorForTile(tile) {
+        if (!tile) return;
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
+
+        tile.style.backgroundColor = accentColor;
+        tile.style.color = '#000';
+      }
+
+      // Save/Load subscribed tickers & prices
+      function saveSubscribedTickers() {
+        localStorage.setItem('subscribedTickers', JSON.stringify(Array.from(subscribedTickers)));
+        localStorage.setItem('livePrices', JSON.stringify(livePrices));
+      }
+
+      function loadSubscribedTickers() {
+        const storedTickers = JSON.parse(localStorage.getItem('subscribedTickers') || '[]');
+        const storedPrices = JSON.parse(localStorage.getItem('livePrices') || '{}');
+
+        storedTickers.forEach(ticker => {
+          ticker = ticker.toUpperCase();
+          subscribedTickers.add(ticker);
+          if (storedPrices[ticker]) {
+            livePrices[ticker] = storedPrices[ticker];
+          } else {
+            livePrices[ticker] = null;
           }
-        } else if (data instanceof ArrayBuffer) {
-          const buffer = new Uint8Array(data);
-          const protobufMsg = decodeProtobuf(buffer);
-          if (protobufMsg) {
-            if (!tryUpdateFromProtobufMsg(protobufMsg)) {
-              console.log("Protobuf decoded but no price update");
+        });
+      }
+
+      // ALERTS
+
+      const notificationBar = document.getElementById('notification-bar');
+      const alertForm = document.getElementById('alert-form');
+      const alertTickerSelect = document.getElementById('alert-ticker');
+
+      let alerts = JSON.parse(localStorage.getItem('priceAlerts') || '[]');
+      let triggeredAlerts = JSON.parse(localStorage.getItem('triggeredPriceAlerts') || '[]');
+
+      function updateAlertsTickerOptions() {
+        const currentVal = alertTickerSelect.value;
+        alertTickerSelect.innerHTML = '';
+        const sortedTickers = Array.from(subscribedTickers).sort();
+        sortedTickers.forEach(ticker => {
+          const option = document.createElement('option');
+          option.value = ticker;
+          option.textContent = ticker;
+          alertTickerSelect.appendChild(option);
+        });
+        if (currentVal && sortedTickers.includes(currentVal)) {
+          alertTickerSelect.value = currentVal;
+        }
+      }
+
+      // Format date/time as dd/mm/yyyy hh:mm:ss
+      function formatDateTime(date) {
+        const pad = (n) => n.toString().padStart(2, '0');
+        const day = pad(date.getDate());
+        const month = pad(date.getMonth() + 1);
+        const year = date.getFullYear();
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+      }
+
+      function renderAlerts() {
+        const tbody = document.getElementById('alerts-tbody');
+        tbody.innerHTML = '';
+
+        if (alerts.length === 0) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 6;
+          td.textContent = 'No active alerts';
+          td.style.textAlign = 'center';
+          td.style.padding = '10px';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        alerts.sort((a, b) => {
+          if (a.ticker !== b.ticker) return a.ticker.localeCompare(b.ticker);
+          if (a.condition !== b.condition) return a.condition.localeCompare(b.condition);
+          return a.price - b.price;
+        });
+
+        alerts.forEach(alert => {
+          const tr = document.createElement('tr');
+
+          const tdTicker = document.createElement('td');
+          tdTicker.textContent = alert.ticker;
+          tdTicker.style.padding = '6px';
+
+          const tdPrice = document.createElement('td');
+          const symbol = getCurrencySymbol(alert.ticker, alert.currency);
+          tdPrice.textContent = `${symbol}${alert.price.toFixed(2)}`;
+          tdPrice.style.padding = '6px';
+
+          const tdCond = document.createElement('td');
+          tdCond.textContent = alert.condition.charAt(0).toUpperCase() + alert.condition.slice(1);
+          tdCond.style.padding = '6px';
+
+          const currentPrice = livePrices[alert.ticker]?.price;
+          const tdCurrent = document.createElement('td');
+          tdCurrent.textContent = typeof currentPrice === 'number' ? 
+            `${getCurrencySymbol(alert.ticker, livePrices[alert.ticker]?.currency)}${currentPrice.toFixed(2)}` : 'N/A';
+          tdCurrent.style.padding = '6px';
+          tdCurrent.style.color = 'inherit';
+
+          const tdNotes = document.createElement('td');
+          tdNotes.textContent = alert.notes || '';
+          tdNotes.style.padding = '6px';
+
+          const tdActions = document.createElement('td');
+          tdActions.style.padding = '6px';
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'remove-alert';
+          removeBtn.textContent = 'Remove';
+          removeBtn.onclick = () => removeAlert(alert.id);
+          tdActions.appendChild(removeBtn);
+
+          tr.appendChild(tdTicker);
+          tr.appendChild(tdPrice);
+          tr.appendChild(tdCond);
+          tr.appendChild(tdCurrent);
+          tr.appendChild(tdNotes);
+          tr.appendChild(tdActions);
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderTriggeredAlerts() {
+        const tbody = document.getElementById('triggered-alerts-tbody');
+        tbody.innerHTML = '';
+
+        if (triggeredAlerts.length === 0) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 6;
+          td.textContent = 'No triggered alerts';
+          td.style.textAlign = 'center';
+          td.style.padding = '10px';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        triggeredAlerts.sort((a, b) => b.timeTriggered - a.timeTriggered);
+
+        triggeredAlerts.forEach(alert => {
+          const tr = document.createElement('tr');
+
+          const tdTicker = document.createElement('td');
+          tdTicker.textContent = alert.ticker;
+          tdTicker.style.padding = '6px';
+
+          const tdPrice = document.createElement('td');
+          const symbol = getCurrencySymbol(alert.ticker, alert.currency);
+          tdPrice.textContent = `${symbol}${alert.price.toFixed(2)}`;
+          tdPrice.style.padding = '6px';
+
+          const tdCond = document.createElement('td');
+          tdCond.textContent = alert.condition.charAt(0).toUpperCase() + alert.condition.slice(1);
+          tdCond.style.padding = '6px';
+
+          const tdCurrent = document.createElement('td');
+          tdCurrent.textContent = typeof alert.currentPrice === 'number' ? 
+            `${getCurrencySymbol(alert.ticker, livePrices[alert.ticker]?.currency)}${alert.currentPrice.toFixed(2)}` : 'N/A';
+          tdCurrent.style.padding = '6px';
+
+          const tdNotes = document.createElement('td');
+          tdNotes.textContent = alert.notes || '';
+          tdNotes.style.padding = '6px';
+
+          const tdTime = document.createElement('td');
+          tdTime.style.padding = '6px';
+          const d = new Date(alert.timeTriggered);
+          tdTime.textContent = formatDateTime(d);
+
+          tr.appendChild(tdTicker);
+          tr.appendChild(tdPrice);
+          tr.appendChild(tdCond);
+          tr.appendChild(tdCurrent);
+          tr.appendChild(tdNotes);
+          tr.appendChild(tdTime);
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      function addAlert(ticker, price, condition, notes) {
+        const id = Date.now();
+        const currency = (livePrices[ticker]?.currency) || '';
+        alerts.push({ id, ticker, price, condition, notes: notes || '', currency });
+        localStorage.setItem('priceAlerts', JSON.stringify(alerts));
+        renderAlerts();
+      }
+
+      function removeAlert(id) {
+        alerts = alerts.filter(a => a.id !== id);
+        localStorage.setItem('priceAlerts', JSON.stringify(alerts));
+        renderAlerts();
+      }
+
+      alertForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const ticker = alertTickerSelect.value;
+        const price = parseFloat(document.getElementById('alert-price').value);
+        const condition = document.getElementById('alert-condition').value;
+        const notes = document.getElementById('alert-notes').value.trim();
+        const currency = (livePrices[ticker]?.currency) || '';
+
+        if (price > 0 && ticker) {
+          const duplicate = alerts.find(a =>
+            a.ticker === ticker &&
+            a.price === price &&
+            a.condition === condition &&
+            a.notes === notes &&
+            a.currency === currency
+          );
+          if (duplicate) {
+            showNotification('This alert already exists.');
+            return;
+          }
+          addAlert(ticker, price, condition, notes);
+          alertForm.reset();
+        }
+      });
+
+      renderAlerts();
+
+      function checkAlerts(ticker, currentPrice) {
+        const currentCurrency = livePrices[ticker]?.currency || '';
+        if (!alerts || alerts.length === 0) return;
+        const triggered = alerts.filter(a => a.ticker === ticker && a.currency === currentCurrency).filter(a => {
+          return (a.condition === 'above' && currentPrice >= a.price)
+            || (a.condition === 'below' && currentPrice <= a.price);
+        });
+        if (triggered.length > 0) {
+          triggered.forEach(alert => {
+            const symbol = getCurrencySymbol(ticker, alert.currency);
+            let message = `Alert! ${alert.ticker} is ${alert.condition} ${symbol}${alert.price.toFixed(2)} (Current: ${symbol}${currentPrice.toFixed(2)})`;
+            
+            if (alert.notes && alert.notes.trim().length > 0) {
+                message += `\nNotes: ${alert.notes}`;
+              }
+            // Existing in-page notification
+            showNotification(message);
+
+            // Send Pushbullet notification
+            sendPushbulletNotification(`Alert: ${alert.ticker}`, message);
+
+            removeAlert(alert.id);
+            triggeredAlerts.push({
+              id: alert.id,
+              ticker: alert.ticker,
+              price: alert.price,
+              condition: alert.condition,
+              notes: alert.notes || '',
+              currentPrice: currentPrice,
+              currency: alert.currency,
+              timeTriggered: Date.now(),
+            });
+          });
+          localStorage.setItem('triggeredPriceAlerts', JSON.stringify(triggeredAlerts));
+          renderTriggeredAlerts();
+        }
+      }
+
+      function showNotification(msg) {
+        notificationBar.textContent = msg;
+        notificationBar.style.display = 'block';
+        setTimeout(() => {
+          notificationBar.style.display = 'none';
+        }, 10000);
+      }
+
+      // ===== Yahoo Finance WebSocket logic =====
+
+      const wsURL = 'wss://streamer.finance.yahoo.com';
+      let socket = null;
+
+      function connectWebSocketSubscribe() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        if (subscribedTickers.size === 0) return;
+        const subscribeMsg = JSON.stringify({ subscribe: Array.from(subscribedTickers).sort() });
+        socket.send(subscribeMsg);
+        console.log("Subscribed tickers updated:", Array.from(subscribedTickers).sort());
+      }
+
+      function createOrResetSocket() {
+        if (socket) {
+          socket.close();
+          socket = null;
+        }
+
+        socket = new WebSocket(wsURL);
+        socket.binaryType = 'arraybuffer';
+
+        socket.onopen = () => {
+          console.log("Yahoo Finance WebSocket connected");
+          connectWebSocketSubscribe();
+        };
+
+        socket.onmessage = event => {
+          const data = event.data;
+
+          if (typeof data === "string") {
+            try {
+              const jsonMsg = JSON.parse(data);
+              if (!tryUpdateFromJsonMsg(jsonMsg)) {
+                console.log("JSON received but no price update found");
+              }
+            } catch (e) {
+              try {
+                const binary = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+                const protobufMsg = decodeProtobuf(binary);
+                if (protobufMsg) {
+                  if (!tryUpdateFromProtobufMsg(protobufMsg)) {
+                    console.log("Protobuf decoded but no price update");
+                  }
+                } else {
+                  console.warn("Failed to decode protobuf message from base64 string");
+                }
+              } catch (err) {
+                console.warn("Error decoding base64 protobuf message:", err);
+              }
+            }
+          } else if (data instanceof ArrayBuffer) {
+            const buffer = new Uint8Array(data);
+            const protobufMsg = decodeProtobuf(buffer);
+            if (protobufMsg) {
+              if (!tryUpdateFromProtobufMsg(protobufMsg)) {
+                console.log("Protobuf decoded but no price update");
+              }
+            } else {
+              console.warn("Failed to decode protobuf message from ArrayBuffer");
             }
           } else {
-            console.warn("Failed to decode protobuf message from ArrayBuffer");
+            console.warn("Unknown WebSocket message type received");
           }
+        };
+
+        socket.onerror = err => {
+          console.error('WebSocket error:', err);
+        };
+
+        socket.onclose = e => {
+          console.warn(`WebSocket closed (code ${e.code}). Reconnecting in 5 seconds...`);
+          setTimeout(createOrResetSocket, 5000);
+        };
+      }
+
+      function tryUpdateFromProtobufMsg(obj) {
+        if (typeof obj !== "object" || !obj) return false;
+        if (obj.id && typeof obj.price === "number" && obj.price >= 0) {
+          const currency = obj.currency || '';
+          updatePrice(obj.id.toUpperCase(), obj.price, currency);
+          return true;
+        }
+        return false;
+      }
+
+      function tryUpdateFromJsonMsg(msg) {
+        if (!msg) return false;
+
+        if (Array.isArray(msg)) {
+          let updated = false;
+          msg.forEach(item => {
+            if (item && item.T && item.F !== undefined) {
+              updatePrice(item.T.toUpperCase(), item.F);
+              updated = true;
+            }
+          });
+          return updated;
+        }
+
+        if (msg.data && Array.isArray(msg.data)) {
+          let updated = false;
+          msg.data.forEach(item => {
+            if (item && item.id && typeof item.price === "number") {
+              updatePrice(item.id.toUpperCase(), item.price);
+              updated = true;
+            }
+          });
+          return updated;
+        }
+
+        if (msg.id && typeof msg.price === "number") {
+          updatePrice(msg.id.toUpperCase(), msg.price);
+          return true;
+        }
+
+        return false;
+      }
+
+      function updatePrice(ticker, price, currency = '') {
+        ticker = ticker.toUpperCase();
+        livePrices[ticker] = { price, currency };
+        updatePriceTile(ticker, price, currency);
+        checkAlerts(ticker, price);
+        saveSubscribedTickers();
+      }
+
+      function initializeLivePrices(initialTickers) {
+        initialTickers.forEach(ticker => addPriceTile(ticker));
+        createOrResetSocket();
+      }
+
+      addPriceForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const ticker = newPriceTickerInput.value.trim().toUpperCase();
+        if (ticker && !subscribedTickers.has(ticker)) {
+          addPriceTile(ticker);
+          newPriceTickerInput.value = '';
+        }
+      });
+
+      // Input uppercase enforcement
+      newPriceTickerInput.addEventListener('input', () => {
+        newPriceTickerInput.value = newPriceTickerInput.value.toUpperCase();
+      });
+
+      // CSV Import Section
+      const csvUploadInput = document.getElementById('csv-upload-input');
+      const csvImportButton = document.getElementById('csv-import-button');
+
+      function parseCSV(text) {
+        const lines = text.trim().split(/\r?\n/);
+        const result = [];
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+
+        const expectedHeaders = ['ticker', 'target price', 'condition', 'current price', 'notes'];
+        const validHeaders = expectedHeaders.every((h, i) => h === headers[i]);
+        if (!validHeaders) {
+          throw new Error(`Invalid CSV headers. Expected: ${expectedHeaders.join(', ')}`);
+        }
+
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const cols = line.split(',').map(c => c.trim());
+          if (cols.length < 4) continue;
+
+          result.push({
+            ticker: cols[0].toUpperCase(),
+            targetPrice: parseFloat(cols[1]),
+            condition: cols[2].toLowerCase(),
+            currentPrice: parseFloat(cols[3]) || null,
+            notes: cols[4] || ''
+          });
+        }
+        return result;
+      }
+
+      function importAlertsFromCSV(alertRows) {
+        let importedCount = 0;
+        alertRows.forEach(row => {
+          if (!row.ticker || !row.targetPrice || !row.condition) return;
+          if (row.condition !== 'above' && row.condition !== 'below') return;
+
+          const currency = (livePrices[row.ticker]?.currency) || '';
+
+          const duplicate = alerts.find(a =>
+            a.ticker === row.ticker &&
+            a.price === row.targetPrice &&
+            a.condition === row.condition &&
+            a.notes === row.notes &&
+            a.currency === currency
+          );
+          if (duplicate) return;
+
+          const id = Date.now() + Math.random();
+
+          alerts.push({
+            id,
+            ticker: row.ticker,
+            price: row.targetPrice,
+            condition: row.condition,
+            notes: row.notes,
+            currency: currency
+          });
+          importedCount++;
+
+          if (!subscribedTickers.has(row.ticker)) {
+            addPriceTile(row.ticker);
+          }
+        });
+
+        localStorage.setItem('priceAlerts', JSON.stringify(alerts));
+        renderAlerts();
+
+        showNotification(`${importedCount} alerts imported from CSV.`);
+      }
+
+      csvImportButton.addEventListener('click', () => {
+        const file = csvUploadInput.files[0];
+        if (!file) {
+          alert('Please select a CSV file to import.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+          try {
+            const text = e.target.result;
+            const alertRows = parseCSV(text);
+            importAlertsFromCSV(alertRows);
+            csvUploadInput.value = '';
+          } catch (err) {
+            alert('Error importing CSV: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // Initialize theme, dark mode, and UI from localStorage as before
+
+        // Load Pushbullet API key from localStorage
+        loadPushbulletKeyFromStorage();
+
+        if (localStorage.getItem('theme-mode') === 'dark') {
+          document.body.classList.add('dark');
+          darkToggle.checked = true;
+          darkToggle.setAttribute('aria-checked', 'true');
         } else {
-          console.warn("Unknown WebSocket message type received");
+          darkToggle.checked = false;
+          darkToggle.setAttribute('aria-checked', 'false');
         }
-      };
 
-      socket.onerror = err => {
-        console.error('WebSocket error:', err);
-      };
+        const accent = localStorage.getItem('theme-accent');
+        if (accent && ['green', 'blue', 'orange'].includes(accent)) {
+          themeSelect.value = accent;
+          setThemeAccent(accent);
+        } else {
+          setThemeAccent('green');
+        }
 
-      socket.onclose = e => {
-        console.warn(`WebSocket closed (code ${e.code}). Reconnecting in 5 seconds...`);
-        setTimeout(createOrResetSocket, 5000);
-      };
-    }
+        updateHamburgerColor();
 
-    function tryUpdateFromProtobufMsg(obj) {
-      if (typeof obj !== "object" || !obj) return false;
-      if (obj.id && typeof obj.price === "number" && obj.price >= 0) {
-        const currency = obj.currency || '';
-        updatePrice(obj.id.toUpperCase(), obj.price, currency);
-        return true;
-      }
-      return false;
-    }
+        loadSubscribedTickers();
 
-    function tryUpdateFromJsonMsg(msg) {
-      if (!msg) return false;
-
-      if (Array.isArray(msg)) {
-        let updated = false;
-        msg.forEach(item => {
-          if (item && item.T && item.F !== undefined) {
-            updatePrice(item.T.toUpperCase(), item.F);
-            updated = true;
+        subscribedTickers.forEach(ticker => {
+          if (!priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`)) {
+            createPriceTile(ticker);
+          }
+          if (livePrices[ticker] && livePrices[ticker].price != null) {
+            updatePriceTile(ticker, livePrices[ticker].price, livePrices[ticker].currency || '');
           }
         });
-        return updated;
-      }
 
-      if (msg.data && Array.isArray(msg.data)) {
-        let updated = false;
-        msg.data.forEach(item => {
-          if (item && item.id && typeof item.price === "number") {
-            updatePrice(item.id.toUpperCase(), item.price);
-            updated = true;
-          }
-        });
-        return updated;
-      }
+        updateAlertsTickerOptions();
+        renderAlerts();
+        renderTriggeredAlerts();
 
-      if (msg.id && typeof msg.price === "number") {
-        updatePrice(msg.id.toUpperCase(), msg.price);
-        return true;
-      }
+        createOrResetSocket();
 
-      return false;
-    }
-
-    function updatePrice(ticker, price, currency = '') {
-      ticker = ticker.toUpperCase();
-      livePrices[ticker] = { price, currency };
-      updatePriceTile(ticker, price, currency);
-      checkAlerts(ticker, price);
-      saveSubscribedTickers();
-    }
-
-    function initializeLivePrices(initialTickers) {
-      initialTickers.forEach(ticker => addPriceTile(ticker));
-      createOrResetSocket();
-    }
-
-    addPriceForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const ticker = newPriceTickerInput.value.trim().toUpperCase();
-      if (ticker && !subscribedTickers.has(ticker)) {
-        addPriceTile(ticker);
-        newPriceTickerInput.value = '';
-      }
-    });
-
-    // Input uppercase enforcement
-    newPriceTickerInput.addEventListener('input', () => {
-      newPriceTickerInput.value = newPriceTickerInput.value.toUpperCase();
-    });
-
-    // CSV Import Section
-    const csvUploadInput = document.getElementById('csv-upload-input');
-    const csvImportButton = document.getElementById('csv-import-button');
-
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      const result = [];
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-
-      const expectedHeaders = ['ticker', 'target price', 'condition', 'current price', 'notes'];
-      const validHeaders = expectedHeaders.every((h, i) => h === headers[i]);
-      if (!validHeaders) {
-        throw new Error(`Invalid CSV headers. Expected: ${expectedHeaders.join(', ')}`);
-      }
-
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const cols = line.split(',').map(c => c.trim());
-        if (cols.length < 4) continue;
-
-        result.push({
-          ticker: cols[0].toUpperCase(),
-          targetPrice: parseFloat(cols[1]),
-          condition: cols[2].toLowerCase(),
-          currentPrice: parseFloat(cols[3]) || null,
-          notes: cols[4] || ''
-        });
-      }
-      return result;
-    }
-
-    function importAlertsFromCSV(alertRows) {
-      let importedCount = 0;
-      alertRows.forEach(row => {
-        if (!row.ticker || !row.targetPrice || !row.condition) return;
-        if (row.condition !== 'above' && row.condition !== 'below') return;
-
-        const currency = (livePrices[row.ticker]?.currency) || '';
-
-        const duplicate = alerts.find(a =>
-          a.ticker === row.ticker &&
-          a.price === row.targetPrice &&
-          a.condition === row.condition &&
-          a.notes === row.notes &&
-          a.currency === currency
-        );
-        if (duplicate) return;
-
-        const id = Date.now() + Math.random();
-
-        alerts.push({
-          id,
-          ticker: row.ticker,
-          price: row.targetPrice,
-          condition: row.condition,
-          notes: row.notes,
-          currency: currency
-        });
-        importedCount++;
-
-        if (!subscribedTickers.has(row.ticker)) {
-          addPriceTile(row.ticker);
+        if (subscribedTickers.size === 0) {
+          initializeLivePrices(['BTC-USD', 'AAPL']);
         }
       });
 
-      localStorage.setItem('priceAlerts', JSON.stringify(alerts));
-      renderAlerts();
+      // ---- Swipe left-to-right to open sidebar (Vanilla JS) ----
+      (function () {
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let swiping = false;
 
-      showNotification(`${importedCount} alerts imported from CSV.`);
-    }
-
-    csvImportButton.addEventListener('click', () => {
-      const file = csvUploadInput.files[0];
-      if (!file) {
-        alert('Please select a CSV file to import.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const text = e.target.result;
-          const alertRows = parseCSV(text);
-          importAlertsFromCSV(alertRows);
-          csvUploadInput.value = '';
-        } catch (err) {
-          alert('Error importing CSV: ' + err.message);
+        // Only on mobile/small touch screens to avoid desktop conflicts
+        function isTouchDevice() {
+          return window.matchMedia('(pointer: coarse)').matches;
         }
-      };
-      reader.readAsText(file);
-    });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      // Initialize theme, dark mode, and UI from localStorage as before
-
-      // Load Pushbullet API key from localStorage
-      loadPushbulletKeyFromStorage();
-
-      if (localStorage.getItem('theme-mode') === 'dark') {
-        document.body.classList.add('dark');
-        darkToggle.checked = true;
-        darkToggle.setAttribute('aria-checked', 'true');
-      } else {
-        darkToggle.checked = false;
-        darkToggle.setAttribute('aria-checked', 'false');
-      }
-
-      const accent = localStorage.getItem('theme-accent');
-      if (accent && ['green', 'blue', 'orange'].includes(accent)) {
-        themeSelect.value = accent;
-        setThemeAccent(accent);
-      } else {
-        setThemeAccent('green');
-      }
-
-      updateHamburgerColor();
-
-      loadSubscribedTickers();
-
-      subscribedTickers.forEach(ticker => {
-        if (!priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`)) {
-          createPriceTile(ticker);
-        }
-        if (livePrices[ticker] && livePrices[ticker].price != null) {
-          updatePriceTile(ticker, livePrices[ticker].price, livePrices[ticker].currency || '');
-        }
-      });
-
-      updateAlertsTickerOptions();
-      renderAlerts();
-      renderTriggeredAlerts();
-
-      createOrResetSocket();
-
-      if (subscribedTickers.size === 0) {
-        initializeLivePrices(['BTC-USD', 'AAPL']);
-      }
-    });
-
-    // ---- Swipe left-to-right to open sidebar (Vanilla JS) ----
-    (function () {
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchEndX = 0;
-      let touchEndY = 0;
-      let swiping = false;
-
-      // Only on mobile/small touch screens to avoid desktop conflicts
-      function isTouchDevice() {
-        return window.matchMedia('(pointer: coarse)').matches;
-      }
-
-      document.addEventListener('touchstart', function (e) {
-        if (!isTouchDevice() || sidebar.classList.contains('open')) return;
-        if (e.touches.length > 1) return; // Only one finger
-        const touch = e.changedTouches[0];
-        touchStartX = touch.screenX;
-        touchStartY = touch.screenY;
-        // Only start if swiping from screen edge (like Android/iOS)
-        if (touchStartX < 32) {
-          swiping = true;
-        }
-      }, { passive: true });
-
-      document.addEventListener('touchmove', function (e) {
-        if (!swiping) return;
-        const touch = e.changedTouches[0];
-        touchEndX = touch.screenX;
-        touchEndY = touch.screenY;
-      }, { passive: true });
-
-      document.addEventListener('touchend', function (e) {
-        if (!swiping) return;
-        swiping = false;
-        const dx = touchEndX - touchStartX;
-        const dy = Math.abs(touchEndY - touchStartY);
-
-        // Only trigger if swipe is mostly horizontal and rightwards and >45px
-        if (dx > 45 && dx > dy) {
-          // Only open if not already open
-          if (!sidebar.classList.contains('open')) {
-            toggleSidebar();
+        document.addEventListener('touchstart', function (e) {
+          if (!isTouchDevice() || sidebar.classList.contains('open')) return;
+          if (e.touches.length > 1) return; // Only one finger
+          const touch = e.changedTouches[0];
+          touchStartX = touch.screenX;
+          touchStartY = touch.screenY;
+          // Only start if swiping from screen edge (like Android/iOS)
+          if (touchStartX < 32) {
+            swiping = true;
           }
-        }
-      }, { passive: true });
+        }, { passive: true });
 
-    })();
+        document.addEventListener('touchmove', function (e) {
+          if (!swiping) return;
+          const touch = e.changedTouches[0];
+          touchEndX = touch.screenX;
+          touchEndY = touch.screenY;
+        }, { passive: true });
 
-	
-  </script>
-</body>
+        document.addEventListener('touchend', function (e) {
+          if (!swiping) return;
+          swiping = false;
+          const dx = touchEndX - touchStartX;
+          const dy = Math.abs(touchEndY - touchStartY);
+
+          // Only trigger if swipe is mostly horizontal and rightwards and >45px
+          if (dx > 45 && dx > dy) {
+            // Only open if not already open
+            if (!sidebar.classList.contains('open')) {
+              toggleSidebar();
+            }
+          }
+        }, { passive: true });
+
+      })();
+
+    </script>
+  </body>
 </html>
