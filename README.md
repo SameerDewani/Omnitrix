@@ -1,13 +1,13 @@
 # Omnitrix
-Financial Price Tracker based on CSV and Yahoo Finance
+Financial Price Tracker based on CSV Upload along with Yahoo Finance and TradingView
 
-Sidebar navigation with overlay and swipe gestures for mobile usability.
-Theme control, including dark/light mode toggle and accent color persistence.
-Pushbullet API integration for sending out notifications based on alerts.
-Live stock price tracking using Yahoo Finance's WebSocket with protobuf data decoding.
-Price tiles UI dynamically displaying subscribed tickers with current prices.
-Alerts system that lets the user define price thresholds (above/below conditions) with notes.
-Persistence of subscribed tickers, live prices, alerts, and triggered alerts in localStorage.
-CSV import functionality to bulk import price alerts.
-Accessible UI features, ARIA attributes, and keyboard handling.
-Dynamic updates and reconnection logic for the WebSocket connection to maintain data flow.
+## Summary of Features
+
+- Mobile-friendly sidebar navigation with overlay and swipe gestures  
+- Theme control with dark/light mode toggle and persistent accent colors  
+- Pushbullet API integration for alert notifications  
+- Live stock price tracking via Yahoo Finance
+- Dynamic price tiles for subscribed tickers  
+- Customizable price alert system with threshold and notes   
+- CSV import for bulk alert setup  
+- Singleton added for detailed stock views via TradingView  
