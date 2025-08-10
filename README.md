@@ -7,7 +7,8 @@ Financial Price Tracker based on CSV Upload along with Yahoo Finance and Trading
 - Theme control with dark/light mode toggle and persistent accent colors  
 - Pushbullet API integration for alert notifications  
 - Live stock price tracking via Yahoo Finance
-- Dynamic price tiles for subscribed tickers  
+- Dynamic price tiles for subscribed tickers
+- CSV import for bulk alert setup   
 - Customizable price alert system with threshold and notes   
-- CSV import for bulk alert setup  
-- Singleton added for detailed stock views via TradingView  
+- Singleton added for detailed stock views via TradingView
+- Link one Dynamic Google Sheet
