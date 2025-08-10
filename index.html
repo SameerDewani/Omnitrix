@@ -487,7 +487,7 @@
       <a href="#" onclick="showTab('singlestock',event)">SingleTon</a>
       <a href="#" onclick="showTab('sheet',event)">Google Sheet</a>
       <a href="#" onclick="showTab('alerts',event)">Alerts</a>
-      <a href="https://zerodha.com/brokerage-calculator/#tab-equities" target="_blank" rel="noopener noreferrer">F&O - Options</a>
+      <a href="https://zerodha.com/brokerage-calculator/#tab-equities" target="_blank" rel="noopener noreferrer">Brokerage Calculator</a>
       <a href="#" onclick="showTab('settings',event)">Settings</a>
     </nav>
     
@@ -499,7 +499,7 @@
         <nav id="ticker-tape"></nav> 
         <div id="price-tiles-container" aria-live="polite" aria-atomic="true"></div>
         <form id="add-price-form" aria-label="Add new live price ticker">
-          <input type="text" id="new-price-ticker" placeholder="Ticker (e.g. MSFT)" maxlength="20" autocomplete="off" aria-required="true" required />
+          <input type="text" id="new-price-ticker" placeholder="ex.: CUB.BO" maxlength="30" autocomplete="off" aria-required="true" required />
           <button type="submit">Add Ticker</button>
         </form>
       </section>
@@ -511,7 +511,7 @@
               <h2 style="margin:0;">SingleTon</h2>
             </td>
             <td align="right" style="vertical-align: middle;">
-              <input type="text" id="symbol-input" placeholder="Enter stock symbol (e.g., BSE:CUB)" required style="text-transform: uppercase;"/>
+              <input type="text" id="symbol-input" placeholder="ex.: EXCHANGE:STOCK" required style="text-transform: uppercase;"/>
               <button id="symbol-submit">Find</button>
             </td>
           </tr>
@@ -531,16 +531,18 @@
         </section>
       </section>
 
-      <section id="sheet-tab" style="display: none;" aria-label="Embedded Google sheet">
-        <h2>Trading Sheet</h2>
-        <div class="iframe-container">
-          <iframe 
-            class="sheet-frame"
-            src="https://docs.google.com/spreadsheets/d/13-rTtZnVhJjVqxV6U1cwFDUf6f61UdNpz-a3-KCy3xA"
-            title="Trading Google Sheet"
-            loading="lazy">
-          </iframe>
-        </div>
+      <section id="sheet-tab" style="display: none;" aria-label="google sheet embedded">
+        <h2>Google Sheets</h2>
+        <div class="iframe-container" style="margin-top: 20px;">
+    <iframe 
+      id="sheet-frame"
+      class="sheet-frame"
+      src=""
+      title="Linked Sheet"
+      loading="lazy"
+      style="width: 100%; height: 650px; border: 1px solid #ccc;">
+    </iframe>
+  </div>
       </section>
 
       <section id="alerts-tab" style="display: none;" aria-label="Price alerts">
@@ -611,6 +613,8 @@
 
       <section id="settings-tab" style="display: none;" aria-label="Settings for theme, dark mode, and alerts">
         <h2>Settings</h2>
+
+        <!-- Theme Selection -->
         <div>
           <p>
             Dark Mode:&nbsp;
@@ -621,6 +625,7 @@
           </p>
         </div>
 
+        <!-- Accent Selection -->       
         <div style="margin-top: 20px;">
           <label for="theme-select"><strong>Theme Accent Color:</strong></label>
           <select id="theme-select" aria-label="Select theme accent color">
@@ -636,7 +641,7 @@
           <input type="file" id="csv-upload-input" accept=".csv,text/csv" aria-describedby="csv-upload-desc" />
           <button id="csv-import-button" style="margin-left: 10px;">Import CSV</button>
           <p id="csv-upload-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
-            CSV format: Ticker,Target Price,Condition,Current Price,Notes
+            CSV Format: Ticker,Target Price,Condition,Current Price,Notes
           </p>
         </div>
 
@@ -662,17 +667,33 @@
         <!-- Ticker Tape Setup Section -->
         <div id="settingsView" class="view" role="tabpanel" tabindex="0" aria-labelledby="btnSettings">
           <div id="controls">
-            <label for="symbolInput">
-              Ticker Tape Setup
-            </label><br />
+            <label for="symbolInput">Ticker Tape Setup:</label>
+            <br/>
             <textarea id="symbolInput" placeholder="NASDAQ:AAPL&#10;BSE:CUB&#10;NASDAQ:TSLA"></textarea>
-            <button id="saveBtn">Save Symbols</button>
+            <button type="button" id="saveBtn">Save Symbols</button>
             <p id="ticker-tape-syntax-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
-              Syntax - EXCHANGE:SYMBOL
+              Format: EXCHANGE:SYMBOL
             </p>
           </div>
         </div>
-    
+
+        <!-- Google Sheet Dynamic -->
+        <div style="margin-top: 30px;">
+          <label for="sheet-url-input"><strong>Sheet Setup:</strong></label><br/>
+          <input
+            id="sheet-url-input" 
+            placeholder="Paste your Sheet's Link Here" 
+            autocomplete="off" 
+            aria-describedby="google-sheet-desc"
+            style="width: 280px; padding: 5px;"
+          />
+          <button type="button" onclick="updateSheet()" style="margin-left: 10px;">Save</button>
+          <p id="google-sheet-status" style="font-size: 0.9em; color: green; margin-top: 4px; display: none;"></p>
+          <p id="google-sheet-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
+            Your URL is stored only in your browser's local storage.<br/>
+          </p>
+        </div>
+
       </section>
     </main>
 
@@ -693,6 +714,7 @@
             }
           } catch { /* ignore parsing errors */ }
         }
+        // Default symbols if Error
         return ['NASDAQ:AAPL', 'BSE:CUB', 'NASDAQ:TSLA'];
       }
 
@@ -700,7 +722,6 @@
       function saveSymbolsToStorage(symbols) {
         localStorage.setItem('tickerSymbols', JSON.stringify(symbols));
       }
-
       // Uppercase enforcement as user types, keeping cursor position
       symbolInput.addEventListener('input', () => {
         const start = symbolInput.selectionStart;
@@ -776,6 +797,57 @@
 
     <!-- Remaining Logic --> 
     <script>
+      // Function to process and save the input, and update the iframe
+      function updateSheet() {
+        const urlInput = document.getElementById('sheet-url-input');
+        const iframe = document.getElementById('sheet-frame');
+        const section = document.getElementById('sheet-tab');
+        const status = document.getElementById('google-sheet-status');
+
+        const userInput = urlInput.value.trim();
+        if (!userInput) {
+          status.style.display = 'none';
+          alert("Please enter a Google Sheets link.");
+          return;
+        }
+
+        try {
+          // Extract the doc ID if it's a Google Sheets URL
+          const match = userInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
+          let iframeSrc = userInput;
+          if (match && match[1]) {
+            iframeSrc = `https://docs.google.com/spreadsheets/d/${match[1]}/preview`;
+          }
+
+          // Set iframe src, show the section, and save to cache
+          iframe.src = iframeSrc;
+          section.style.display = 'none';
+          localStorage.setItem('savedSheetURL', iframeSrc);
+
+          // Show status message for 2 seconds
+          status.textContent = 'Saved! Sheet Loaded.';
+          status.style.display = 'block';
+          setTimeout(() => { status.style.display = 'none'; }, 2000);
+
+        } catch (err) {
+          alert("Invalid link format");
+          status.style.display = 'none';
+          console.error(err);
+        }
+      }
+
+      // On page load, check if there's a cached Sheet URL and set everything up
+      window.addEventListener('DOMContentLoaded', () => {
+        const urlInput = document.getElementById('sheet-url-input');
+        const iframe = document.getElementById('sheet-frame');
+        const section = document.getElementById('sheet-tab');
+        const savedURL = localStorage.getItem('savedSheetURL');
+        if (savedURL && urlInput && iframe && section) {
+          iframe.src = savedURL;
+          urlInput.value = savedURL;
+        }
+      });
+            
       // Sidebar toggle & overlay
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('overlay');
@@ -982,6 +1054,7 @@
       };
 
       function getCurrencySymbol(ticker, code) {
+
         let currCode = code;
         if (!currCode) {
           currCode = (ticker.endsWith('.NS') || ticker.endsWith('.BO')) ? 'INR' : 'USD';
