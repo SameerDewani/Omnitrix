@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Financial Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap" rel="stylesheet" />
+    
+    <!-- Add SVG in Browser Tile -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
+
     <style>
       :root {
         --accent-green: #00ff88;
@@ -1054,7 +1058,6 @@
       };
 
       function getCurrencySymbol(ticker, code) {
-
         let currCode = code;
         if (!currCode) {
           currCode = (ticker.endsWith('.NS') || ticker.endsWith('.BO')) ? 'INR' : 'USD';
