@@ -4,10 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Financial Dashboard</title>
+
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700&display=swap" rel="stylesheet" />
     
     <!-- Add SVG in Browser Tile -->
     <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
+
+    <!-- Arrows -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
       :root {
@@ -45,7 +50,6 @@
         background: var(--ben-dark);
         color: var(--text-light);
       }
-
       .accent {
         color: var(--accent-color);
       }
@@ -125,14 +129,13 @@
         width: 100vw;
         background: rgba(0, 0, 0, 0.5);
       }
-
       #overlay.show {
         display: block;
       }
 
       .content {
-        margin: 0;
-        padding: 60px 20px 20px 20px;
+        margin: 0px;
+        padding: 5px 20px 20px 20px;
         transition: margin-left 0.3s ease;
         max-width: 960px;
         margin-left: auto;
@@ -143,21 +146,24 @@
         position: fixed;
         top: 12px;
         left: 70px;
-        right: 20px;
-        height: 28px;
+        right: 25px;
+        height: 31px;
         display: flex;
         align-items: center;
         font-family: 'Oxanium', sans-serif;
         font-weight: 700;
         font-size: 1.5em;
         color: var(--accent-color);
+        /* background-color:  var(--ben-light); --UnComment to make top bar opaque*/
         user-select: none;
         white-space: nowrap;
         transition: color 0.3s;
+        z-index: 1000;                
       }
 
       body.dark .top-bar {
         color: var(--text-light);
+        /* background-color:  var(--ben-dark); --UnComment to make top bar opaque*/
       }
 
       #price-tiles-container {
@@ -182,6 +188,24 @@
         justify-content: space-between;
         gap: 10px;
         cursor: default;
+      }
+
+      .price-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* center horizontally */
+        text-align: center;  /* ensure text is centered */
+      }
+
+      .price-label, 
+      .price-change-percent {
+        display: block;
+        width: 100%;  /* so text-align works fully */
+      }
+
+      .price-change-percent {
+        margin-top: 2px;
+        font-size: 1em;
       }
 
       body.dark .price-tile {
@@ -293,9 +317,9 @@
         width: 1300px;
         height: 600px;
         border: none;
-        border-radius: 8px;
-        margin-top: 20px;
-        user-select: none;
+        border-radius: 7px;
+        margin-top: 0px;
+        user-select: all;
       }
 
       .iframe-container {
@@ -431,6 +455,7 @@
         grid-template-columns: 1fr 1fr;
         grid-gap: var(--gap-size, 32px);
       }
+
       #stock-tab .span-full-grid,
       #stock-tab #symbol-info,
       #stock-tab #advanced-chart,
@@ -438,11 +463,13 @@
       #stock-tab #fundamental-data {
         grid-column: span 2;
       }
+
       #stock-tab .span-one-column,
       #stock-tab #technical-analysis,
       #stock-tab #top-stories {
         grid-column: span 1;
       }
+
       #stock-tab #ticker-tape {
         width: 100%;
       }
@@ -450,7 +477,7 @@
         height: 500px;
       }
       #stock-tab #company-profile {
-        height: 300px;
+        height: 350px;
       }
       #stock-tab #fundamental-data {
         height: 990px;
@@ -467,13 +494,17 @@
         #stock-tab #powered-by-tv {
           grid-column: span 2;
         }
+        #stock-tab #fundamental-data {
+          height: 500px;
+        }
       }
-
     </style>
+    
   </head>
   <body data-theme-accent="green">
     <div id="notification-bar" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
+    <!-- Uses 3 empty <span> elements styled via CSS for the 3 horizontal bars. -->
     <div class="hamburger" tabindex="0" role="button" aria-label="Toggle menu" onclick="toggleSidebar()" onkeydown="if(event.key==='Enter' || event.key===' ') toggleSidebar()">
       <span></span>
       <span></span>
@@ -481,7 +512,7 @@
     </div>
 
     <div class="top-bar" aria-label="Page title">
-      <HEADER> I DECLARE BANKRUPTCY</HEADER>
+      <a href="index.html"style="text-decoration: none; color: inherit;"><HEADER>I DECLARE BANKRUPTCY</HEADER></a>
     </div>
 
     <div id="overlay" onclick="toggleSidebar()" tabindex="-1" aria-hidden="true"></div>
@@ -489,21 +520,22 @@
     <nav id="sidebar" class="sidebar" aria-label="Primary navigation" tabindex="-1">
       <a href="#" class="active" onclick="showTab('home',event)">Home</a>
       <a href="#" onclick="showTab('singlestock',event)">SingleTon</a>
-      <a href="#" onclick="showTab('sheet',event)">Google Sheet</a>
+      <a href="#" onclick="showTab('sheet',event)">Linked Sheet</a>
       <a href="#" onclick="showTab('alerts',event)">Alerts</a>
       <a href="https://zerodha.com/brokerage-calculator/#tab-equities" target="_blank" rel="noopener noreferrer">Brokerage Calculator</a>
       <a href="#" onclick="showTab('settings',event)">Settings</a>
     </nav>
     
+    <!-- No live data for markets where min timeframe is > 1D ex :Indian Markets in Free Version of Widgets for trading View.
+         Is this even worth it??? -->
     <nav id="ticker-tape"></nav> 
 
     <main class="content">
       <section id="home-tab" aria-label="Home tab content">
         <h1>Live Prices</h1> 
-        <nav id="ticker-tape"></nav> 
         <div id="price-tiles-container" aria-live="polite" aria-atomic="true"></div>
         <form id="add-price-form" aria-label="Add new live price ticker">
-          <input type="text" id="new-price-ticker" placeholder="ex.: CUB.BO" maxlength="30" autocomplete="off" aria-required="true" required />
+          <input type="text" id="new-price-ticker" placeholder="ex.: CUB.BO" autocomplete="off" aria-required="true" required />
           <button type="submit">Add Ticker</button>
         </form>
       </section>
@@ -521,9 +553,7 @@
           </tr>
         </table>
 
-        <section id="stock-tab">
-          <nav id="ticker-tape"></nav>
-        
+        <section id="stock-tab">        
           <div class="content-area">
             <section id="symbol-info"></section>
             <section id="advanced-chart"></section>
@@ -531,22 +561,24 @@
             <section id="fundamental-data"></section>
             <section id="technical-analysis"></section>
             <section id="top-stories"></section>
+            <br><br><br><br><br><br><br>
+            </div>
           </div>
         </section>
       </section>
 
-      <section id="sheet-tab" style="display: none;" aria-label="google sheet embedded">
-        <h2>Google Sheets</h2>
-        <div class="iframe-container" style="margin-top: 20px;">
-    <iframe 
-      id="sheet-frame"
-      class="sheet-frame"
-      src=""
-      title="Linked Sheet"
-      loading="lazy"
-      style="width: 100%; height: 650px; border: 1px solid #ccc;">
-    </iframe>
-  </div>
+      <section id="sheet-tab" style="display: none;" aria-label="sheet embedded">
+        <h2>Sheets</h2>
+        <div class="iframe-container">
+          <iframe 
+            id="sheet-frame"
+            class="sheet-frame"
+            src=""
+            title="Linked Sheet"
+            loading="lazy"
+            style="width: 100%; height: 650px; border: 1px solid #ccc;">
+          </iframe>
+        </div>
       </section>
 
       <section id="alerts-tab" style="display: none;" aria-label="Price alerts">
@@ -615,7 +647,7 @@
         </table>
       </section>
 
-      <section id="settings-tab" style="display: none;" aria-label="Settings for theme, dark mode, and alerts">
+      <section id="settings-tab" style="display: none;" aria-label="Settings for theme, accent color, alerts and much more">
         <h2>Settings</h2>
 
         <!-- Theme Selection -->
@@ -656,7 +688,7 @@
             type="password" 
             id="pushbullet-api-key-input" 
             placeholder="Paste your API key here" 
-            autocomplete="off" 
+            autocomplete="off"
             aria-describedby="pushbullet-api-key-desc"
             style="width: 280px; padding: 5px;"
           />
@@ -669,6 +701,7 @@
         </div>
         
         <!-- Ticker Tape Setup Section -->
+        <!-- Current Prices not reflected for some markets and displays last known price generally a day old -->
         <div id="settingsView" class="view" role="tabpanel" tabindex="0" aria-labelledby="btnSettings">
           <div id="controls">
             <label for="symbolInput">Ticker Tape Setup:</label>
@@ -676,24 +709,25 @@
             <textarea id="symbolInput" placeholder="NASDAQ:AAPL&#10;BSE:CUB&#10;NASDAQ:TSLA"></textarea>
             <button type="button" id="saveBtn">Save Symbols</button>
             <p id="ticker-tape-syntax-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
-              Format: EXCHANGE:SYMBOL
+              Format: EXCHANGE:SYMBOL<br/>
+              Widget may not reflect current prices due to limitations of TradingView Widgets
             </p>
           </div>
         </div>
 
-        <!-- Google Sheet Dynamic -->
+        <!-- Dynamic Sheet -->
         <div style="margin-top: 30px;">
           <label for="sheet-url-input"><strong>Sheet Setup:</strong></label><br/>
           <input
             id="sheet-url-input" 
             placeholder="Paste your Sheet's Link Here" 
             autocomplete="off" 
-            aria-describedby="google-sheet-desc"
+            aria-describedby="sheet-desc"
             style="width: 280px; padding: 5px;"
           />
           <button type="button" onclick="updateSheet()" style="margin-left: 10px;">Save</button>
-          <p id="google-sheet-status" style="font-size: 0.9em; color: green; margin-top: 4px; display: none;"></p>
-          <p id="google-sheet-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
+          <p id="sheet-status" style="font-size: 0.9em; color: green; margin-top: 4px; display: none;"></p>
+          <p id="sheet-desc" style="font-size: 0.9em; color: gray; margin-top: 4px;">
             Your URL is stored only in your browser's local storage.<br/>
           </p>
         </div>
@@ -701,146 +735,44 @@
       </section>
     </main>
 
-    <!-- Ticker Tape Setup in settings page --> 
-    <script>
-      // Elements references
-      const symbolInput = document.getElementById('symbolInput');
-      const saveBtn = document.getElementById('saveBtn');
-
-      // Load saved symbols or default:
-      function loadSymbolsFromStorage() {
-        const saved = localStorage.getItem('tickerSymbols');
-        if (saved) {
-          try {
-            const arr = JSON.parse(saved);
-            if (Array.isArray(arr) && arr.length > 0) {
-              return arr;
-            }
-          } catch { /* ignore parsing errors */ }
-        }
-        // Default symbols if Error
-        return ['NASDAQ:AAPL', 'BSE:CUB', 'NASDAQ:TSLA'];
-      }
-
-      // Save symbols to localStorage
-      function saveSymbolsToStorage(symbols) {
-        localStorage.setItem('tickerSymbols', JSON.stringify(symbols));
-      }
-      // Uppercase enforcement as user types, keeping cursor position
-      symbolInput.addEventListener('input', () => {
-        const start = symbolInput.selectionStart;
-        const end = symbolInput.selectionEnd;
-        symbolInput.value = symbolInput.value.toUpperCase();
-        symbolInput.setSelectionRange(start, end);
-      });
-
-      // Load initial data on page load
-      window.addEventListener('load', () => {
-        const symbols = loadSymbolsFromStorage();
-        symbolInput.value = symbols.join('\n');
-      });
-
-      // Save button handler
-      saveBtn.addEventListener('click', () => {
-        const symbols = symbolInput.value
-          .split('\n')
-          .map(s => s.trim())
-          .filter(s => s.length > 0);
-
-        if (symbols.length === 0) {
-          alert('Please enter at least one symbol.');
-          return;
-        }
-        saveSymbolsToStorage(symbols);
-      });  
-    </script>
-
-    <!-- Trading View Widgets Logic --> 
-    <script type="module">
-      import { loadWidgets, widgetContainers } from './tradingview-widgets.js';
-
-      const darkToggleer = document.getElementById('darkToggle');
-      const symbolInput = document.getElementById('symbol-input');
-      const symbolSubmit = document.getElementById('symbol-submit');
-      const symbols = loadSymbolsFromStorage();
-
-      // Initialization on DOM ready
-      window.addEventListener('DOMContentLoaded', () => {
-        const savedSymbol = localStorage.getItem('stockSymbol') || 'BSE:CUB';
-        symbolInput.value = savedSymbol;
-        loadWidgets(savedSymbol, darkToggleer, widgetContainers, symbols);
-      });
-
-      // Reload widgets on dark mode toggle change
-      darkToggleer.addEventListener('change', () => {
-        // Your existing toggleDarkMode function can be called here if needed
-        loadWidgets(localStorage.getItem('stockSymbol') || 'BSE:CUB', darkToggleer, widgetContainers, symbols);
-      });
-
-      // Handle symbol submit button click
-      symbolSubmit.addEventListener('click', () => {
-        const newSymbol = symbolInput.value.trim().toUpperCase();
-        if (!newSymbol) {
-          alert('Please enter a valid stock symbol.');
-          return;
-        }
-        localStorage.setItem('stockSymbol', newSymbol);
-        loadWidgets(newSymbol, darkToggleer, widgetContainers, symbols);
-      });
-
-      // Optional: load widgets on enter key press in symbol input
-      symbolInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          symbolSubmit.click();
-        }
-      });
-    </script>
-
     <!-- Protbuf Reuired for Decoding Yahoo Finance WebSocket --> 
     <script src="https://cdn.jsdelivr.net/npm/protobufjs/dist/protobuf.min.js"></script>
 
     <!-- Remaining Logic --> 
     <script>
-      // Function to process and save the input, and update the iframe
+
+      // Function to process, save the input, and update the iframe
       function updateSheet() {
         const urlInput = document.getElementById('sheet-url-input');
         const iframe = document.getElementById('sheet-frame');
         const section = document.getElementById('sheet-tab');
-        const status = document.getElementById('google-sheet-status');
+        const status = document.getElementById('sheet-status');
 
         const userInput = urlInput.value.trim();
         if (!userInput) {
           status.style.display = 'none';
-          alert("Please enter a Google Sheets link.");
+          alert("Please Enter a Sheet link.");
           return;
         }
-
         try {
-          // Extract the doc ID if it's a Google Sheets URL
-          const match = userInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
-          let iframeSrc = userInput;
-          if (match && match[1]) {
-            iframeSrc = `https://docs.google.com/spreadsheets/d/${match[1]}/preview`;
-          }
+            // Set iframe src, show the section, and save to cache
+            let iframeSrc = userInput; 
+            iframe.src = iframeSrc;
+            section.style.display = 'none';
+            localStorage.setItem('savedSheetURL', iframeSrc);
 
-          // Set iframe src, show the section, and save to cache
-          iframe.src = iframeSrc;
-          section.style.display = 'none';
-          localStorage.setItem('savedSheetURL', iframeSrc);
-
-          // Show status message for 2 seconds
-          status.textContent = 'Saved! Sheet Loaded.';
-          status.style.display = 'block';
-          setTimeout(() => { status.style.display = 'none'; }, 2000);
-
+            // Show status message for 2 seconds
+            status.textContent = 'Saved! Sheet Loaded.';
+            status.style.display = 'block';
+            setTimeout(() => { status.style.display = 'none'; }, 2000);
         } catch (err) {
-          alert("Invalid link format");
-          status.style.display = 'none';
+          alert("Invalid data");
+          status.style.display = 'block';
           console.error(err);
         }
       }
 
-      // On page load, check if there's a cached Sheet URL and set everything up
+      // On page load, check if there's a cached Sheet URL and set everything
       window.addEventListener('DOMContentLoaded', () => {
         const urlInput = document.getElementById('sheet-url-input');
         const iframe = document.getElementById('sheet-frame');
@@ -987,7 +919,6 @@
         const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
         document.querySelectorAll('.sidebar a').forEach(a => { a.style.color = accentColor; });
         document.querySelector('.top-bar').style.color = accentColor;
-
         document.querySelectorAll('.price-tile').forEach(tile => {
           tile.style.backgroundColor = accentColor;
           tile.style.color = window.getComputedStyle(document.body).color;
@@ -1010,14 +941,13 @@
         setThemeAccent(e.target.value);
       });
 
-
       function updateHamburgerColor() {
         const spans = document.querySelectorAll('.hamburger span');
         const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
         spans.forEach(s => s.style.backgroundColor = accentColor);
       }
 
-      // Currency symbols mapping
+      // Currency symbol mapping
       const currencySymbols = {
         USD: '$',
         EUR: '€',
@@ -1060,6 +990,7 @@
       function getCurrencySymbol(ticker, code) {
         let currCode = code;
         if (!currCode) {
+          //If Currency is NULL checks based on ticker name to alot currency
           currCode = (ticker.endsWith('.NS') || ticker.endsWith('.BO')) ? 'INR' : 'USD';
         }
         currCode = currCode.toUpperCase();
@@ -1202,8 +1133,7 @@
         livePrices[ticker] = livePrices[ticker] || null;
 
         createPriceTile(ticker);
-
-        saveSubscribedTickers();+
+        saveSubscribedTickers();
         updateAlertsTickerOptions();
         connectWebSocketSubscribe();
       }
@@ -1221,20 +1151,66 @@
         localStorage.setItem('priceAlerts', JSON.stringify(alerts));
         renderAlerts();
         updateAlertsTickerOptions();
-
         saveSubscribedTickers();
         connectWebSocketSubscribe();
       }
-
-      function updatePriceTile(ticker, price, currency) {
+      
+      function updatePriceTile(ticker, price, currency, changePercent, changeValue) {
         ticker = ticker.toUpperCase();
         const tile = priceTilesContainer.querySelector(`.price-tile[data-ticker="${ticker}"]`);
         if (tile) {
-          const label = tile.querySelector('.price-label');
+          // Find or create the price-info container
+          let priceInfo = tile.querySelector('.price-info');
+          if (!priceInfo) {
+            // If tile currently has old label directly, wrap it in .price-info
+            let oldLabel = tile.querySelector('.price-label');
+            if (!oldLabel) {
+              oldLabel = document.createElement('div');
+              oldLabel.className = 'price-label';
+              oldLabel.textContent = `${ticker}: Loading...`;
+              tile.appendChild(oldLabel);
+            }
+            priceInfo = document.createElement('div');
+            priceInfo.className = 'price-info';
+            tile.insertBefore(priceInfo, tile.querySelector('button.remove-price'));
+            priceInfo.appendChild(oldLabel); // move old label inside
+          }
+
+          // price label (reuse, don't duplicate)
+          let label = priceInfo.querySelector('.price-label');
+          if (!label) {
+            label = document.createElement('div');
+            label.className = 'price-label';
+            priceInfo.appendChild(label);
+          }
           const symbol = getCurrencySymbol(ticker, currency);
           label.textContent = `${ticker}: ${symbol}${price.toFixed(2)}`;
+
+          // Add DayChange and ChangePercent label
+          let percentElem = priceInfo.querySelector('.price-change-percent');
+            if (!percentElem) {
+              percentElem = document.createElement('div');
+              percentElem.className = 'price-change-percent';
+              priceInfo.appendChild(percentElem);
+            }
+      
+            if (typeof changePercent === 'number' && typeof changeValue === 'number') {
+              if (changePercent > 0) {
+                percentElem.innerHTML = `<i class="fa-solid fa-arrow-up"></i> + ${changeValue.toFixed(2)} (+${changePercent.toFixed(2)}%) <i class="fa-solid fa-arrow-up"></i>`;
+                percentElem.style.color = "green";
+              } else if (changePercent < 0) {
+                percentElem.innerHTML = `<i class="fa-solid fa-arrow-down"></i> ${changeValue.toFixed(2)} (${changePercent.toFixed(2)}%) <i class="fa-solid fa-arrow-down"></i>`;
+                percentElem.style.color = "red";
+              } else {
+                percentElem.textContent = `${changeValue.toFixed(2)} (${changePercent.toFixed(2)}%)`;
+                percentElem.style.color = "gray";
+              }
+              percentElem.style.fontWeight = 'bold';
+            } else {
+              percentElem.textContent = '';
+            }
+          }
         }
-      }
 
       function updateThemeAccentColorForTile(tile) {
         if (!tile) return;
@@ -1516,7 +1492,6 @@
       }
 
       // ===== Yahoo Finance WebSocket logic =====
-
       const wsURL = 'wss://streamer.finance.yahoo.com';
       let socket = null;
 
@@ -1544,15 +1519,8 @@
 
         socket.onmessage = event => {
           const data = event.data;
-
           if (typeof data === "string") {
             try {
-              const jsonMsg = JSON.parse(data);
-              if (!tryUpdateFromJsonMsg(jsonMsg)) {
-                console.log("JSON received but no price update found");
-              }
-            } catch (e) {
-              try {
                 const binary = Uint8Array.from(atob(data), c => c.charCodeAt(0));
                 const protobufMsg = decodeProtobuf(binary);
                 if (protobufMsg) {
@@ -1565,7 +1533,6 @@
               } catch (err) {
                 console.warn("Error decoding base64 protobuf message:", err);
               }
-            }
           } else if (data instanceof ArrayBuffer) {
             const buffer = new Uint8Array(data);
             const protobufMsg = decodeProtobuf(buffer);
@@ -1593,51 +1560,20 @@
 
       function tryUpdateFromProtobufMsg(obj) {
         if (typeof obj !== "object" || !obj) return false;
-        if (obj.id && typeof obj.price === "number" && obj.price >= 0) {
+        if (obj.id && typeof obj.price === "number") {
           const currency = obj.currency || '';
-          updatePrice(obj.id.toUpperCase(), obj.price, currency);
+          const changePercent = obj.changePercent || '';
+          const changeValue = obj.change || '';
+          updatePrice(obj.id.toUpperCase(), obj.price, currency, changePercent, changeValue);
           return true;
         }
         return false;
       }
 
-      function tryUpdateFromJsonMsg(msg) {
-        if (!msg) return false;
-
-        if (Array.isArray(msg)) {
-          let updated = false;
-          msg.forEach(item => {
-            if (item && item.T && item.F !== undefined) {
-              updatePrice(item.T.toUpperCase(), item.F);
-              updated = true;
-            }
-          });
-          return updated;
-        }
-
-        if (msg.data && Array.isArray(msg.data)) {
-          let updated = false;
-          msg.data.forEach(item => {
-            if (item && item.id && typeof item.price === "number") {
-              updatePrice(item.id.toUpperCase(), item.price);
-              updated = true;
-            }
-          });
-          return updated;
-        }
-
-        if (msg.id && typeof msg.price === "number") {
-          updatePrice(msg.id.toUpperCase(), msg.price);
-          return true;
-        }
-
-        return false;
-      }
-
-      function updatePrice(ticker, price, currency = '') {
+      function updatePrice(ticker, price, currency = '', changePercent, changeValue) {
         ticker = ticker.toUpperCase();
-        livePrices[ticker] = { price, currency };
-        updatePriceTile(ticker, price, currency);
+        livePrices[ticker] = { price, currency, changePercent, changeValue };
+        updatePriceTile(ticker, price, currency, changePercent, changeValue);
         checkAlerts(ticker, price);
         saveSubscribedTickers();
       }
@@ -1777,7 +1713,6 @@
         }
 
         updateHamburgerColor();
-
         loadSubscribedTickers();
 
         subscribedTickers.forEach(ticker => {
@@ -1792,7 +1727,6 @@
         updateAlertsTickerOptions();
         renderAlerts();
         renderTriggeredAlerts();
-
         createOrResetSocket();
 
         if (subscribedTickers.size === 0) {
@@ -1850,5 +1784,257 @@
       })();
 
     </script>
+
+    <!-- Trading View Functionality -->     
+    <script>
+      const widgetContainers = [
+          'symbol-info',
+          'advanced-chart',
+          'company-profile',
+          'fundamental-data',
+          'technical-analysis',
+          'top-stories'
+        ];
+    
+      const tickertapesymbolInput = document.getElementById('symbolInput');
+      const saveBtn = document.getElementById('saveBtn');
+      const darkToggleer = document.getElementById('darkToggle');
+      const symbolInput = document.getElementById('symbol-input');
+      const symbolSubmit = document.getElementById('symbol-submit');
+      
+      function getTradingViewTheme() {
+        if(localStorage.getItem('theme-mode')==='dark'){
+          return "dark"
+        }
+        else if(localStorage.getItem('theme-mode')==='light'){
+          return "light"
+        } 
+        else {
+          return "light" //Default page will load in light on first run sincethis is null : localStorage.getItem('theme-mode')
+        }
+      }
+
+      function clearWidgets(widgetContainers) {
+        widgetContainers.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = "";
+        });
+      }
+
+      function createWidget(containerId, src, config) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = ''; // Clear previous widgets if any
+        const widgetDiv = document.createElement('div');
+        widgetDiv.className = 'tradingview-widget-container__widget';
+        container.appendChild(widgetDiv);
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.src = src;
+        script.textContent = JSON.stringify(config);
+        container.appendChild(script);
+      }
+
+      //TickerTape Creation is set to seprate because whenever in singleton a new stock is loaded it reloads tickertape
+      //to avoid this moving ticker tape creation into a different function
+      function tickertapeWidgetCreation(widgetContainers, symbolsArray) {
+        //overwriting exisiting value in widgetcontainer to ticker tape exclusively for this function only 
+        widgetContainers = [
+          'ticker-tape'
+        ];
+
+        clearWidgets(widgetContainers);
+        const TVWidgets = getTradingViewTheme();
+        const widgetSymbols = symbolsArray.map(s => ({ description: "", proName: s.trim() }));
+
+        // Ticker Tape
+        createWidget('ticker-tape', 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js', {
+          symbols: widgetSymbols,
+          colorTheme: TVWidgets,
+          locale: "en",
+          largeChartUrl: "",
+          isTransparent: true,
+          showSymbolLogo: true,
+          displayMode: "compact"
+        });
+      }
+
+      function loadWidgets(symbol, darkToggle, widgetContainers, symbolsArray) {
+        clearWidgets(widgetContainers);
+        const TVWidgets = getTradingViewTheme();
+        const SYMBOL = symbol;
+        const widgetSymbols = symbolsArray.map(s => ({ description: "", proName: s.trim() }));
+
+        // Symbol Info
+        createWidget('symbol-info', 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js', {
+          symbol: SYMBOL,
+          width: "100%",
+          locale: "en",
+          colorTheme: TVWidgets,
+          isTransparent: true,
+          largeChartUrl: "",
+
+        });
+
+        // Advanced Chart
+        createWidget('advanced-chart', 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js', {
+          allow_symbol_change: true,
+          calendar: false,
+          details: true,
+          hide_side_toolbar: true,
+          hide_top_toolbar: false,
+          hide_legend: false,
+          hide_volume: false,
+          hotlist: false,
+          interval: "D",
+          locale: "en",
+          save_image: true,
+          style: "1",
+          symbol: SYMBOL,
+          theme: TVWidgets,
+          timezone: "exchange",
+          backgroundColor: (TVWidgets === "light") ? "#ffffff" : "#0F0F0F",
+          gridColor: "rgba(242, 242, 242, 0.06)",
+          watchlist: [],
+          withdateranges: false,
+          compareSymbols: [],
+          studies: ["STD;EMA","STD;RSI"],
+          autosize: true
+        });
+
+        // Company Profile
+        createWidget('company-profile', 'https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js', {
+          symbol: SYMBOL,
+          colorTheme: TVWidgets,
+          isTransparent: true,
+          locale: "en",
+          width: "100%",
+          height: "100%"
+        });
+
+        // Fundamental Data
+        createWidget('fundamental-data', 'https://s3.tradingview.com/external-embedding/embed-widget-financials.js', {
+          symbol: SYMBOL,
+          colorTheme: TVWidgets,
+          //Custom Parameter based on device type desktop or mobile
+          displayMode: /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i  .test(navigator.userAgent)  ? 'adaptive'   : 'regular',
+          isTransparent: true,
+          locale: "en",
+          width: "100%",
+          height: "100%"
+        });
+
+        // Technical Analysis
+        createWidget('technical-analysis', 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js', {
+          colorTheme: TVWidgets,
+          displayMode: "multiple",
+          isTransparent: true,
+          locale: "en",
+          interval: "1D",
+          disableInterval: false,
+          width: "100%",
+          height: "100%",
+          symbol: SYMBOL,
+          showIntervalTabs: true
+        });
+
+        // Top Stories
+        createWidget('top-stories', 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js', {
+          displayMode: "compact",
+          feedMode: "symbol",
+          symbol: SYMBOL,
+          colorTheme: TVWidgets,
+          isTransparent: true,
+          locale: "en",
+          width: "100%",
+          height: "100%"
+        });
+      }
+
+      //Ticker Tape Related
+      function loadSymbolsFromStorage() {
+        const saved = localStorage.getItem('tickerSymbols');
+        if (saved) {
+          try {
+            const arr = JSON.parse(saved);
+            if (Array.isArray(arr) && arr.length > 0) {
+              return arr;
+            }
+          } catch { /* ignore */ }
+        }
+        return ['NASDAQ:AAPL', 'BSE:CUB', 'NASDAQ:TSLA']; // default list
+      }
+
+      //SingleTon Ticker Related
+      function saveSymbolsToStorage(symbols) {
+        localStorage.setItem('tickerSymbols', JSON.stringify(symbols));
+      }
+
+      // Enforce uppercase in textarea
+      tickertapesymbolInput.addEventListener('input', () => {
+        const start = tickertapesymbolInput.selectionStart;
+        const end = tickertapesymbolInput.selectionEnd;
+        tickertapesymbolInput.value = tickertapesymbolInput.value.toUpperCase();
+        tickertapesymbolInput.setSelectionRange(start, end);
+      });
+
+      // Load symbols into settings textarea Ticker Tape Related
+      window.addEventListener('load', () => {
+        const symbols = loadSymbolsFromStorage();
+        tickertapesymbolInput.value = symbols.join('\n');
+      });
+
+      // Init widgets on DOM ready
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedSymbol = localStorage.getItem('stockSymbol') || 'BSE:CUB';
+        symbolInput.value = savedSymbol;
+        tickertapeWidgetCreation(widgetContainers, loadSymbolsFromStorage());
+        loadWidgets(savedSymbol, darkToggleer, widgetContainers, loadSymbolsFromStorage());
+
+      });
+
+      // Save symbols and reload widgets immediately TickerTape
+      saveBtn.addEventListener('click', () => {
+        const symbols = tickertapesymbolInput.value
+          .split('\n')
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+
+        if (symbols.length === 0) {
+          alert('Please enter at least one symbol.');
+          return;
+        }
+
+        saveSymbolsToStorage(symbols);
+        //exclusively calling only ticker tape functionality
+        tickertapeWidgetCreation(widgetContainers, loadSymbolsFromStorage());
+      });
+
+      // Dark mode change reloads widgets
+      darkToggleer.addEventListener('change', () => {
+        tickertapeWidgetCreation(widgetContainers, loadSymbolsFromStorage());
+        loadWidgets(localStorage.getItem('stockSymbol') || 'BSE:CUB', darkToggleer, widgetContainers, loadSymbolsFromStorage());
+      });
+
+      // Submit new symbol SingleTon
+      symbolSubmit.addEventListener('click', () => {
+        const newSymbol = symbolInput.value.trim().toUpperCase();
+        if (!newSymbol) {
+          alert('Please enter a valid stock symbol.');
+          return;
+        }
+        localStorage.setItem('stockSymbol', newSymbol);
+        loadWidgets(newSymbol, darkToggleer, widgetContainers, loadSymbolsFromStorage());
+      });
+
+      // Enter key triggers symbol submit TickerTape
+      symbolInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          symbolSubmit.click();
+        }
+      });
+    </script>
+
   </body>
 </html>
